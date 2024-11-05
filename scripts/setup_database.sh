@@ -31,7 +31,7 @@ docker build -t mi-postgres "$PROJECT_ROOT/database" || {
 }
 
 docker run --name postgres-db \
-    -p 5432:5432 \
+    -p 5434:5432 \
     -e POSTGRES_USER=postgres \
     -e POSTGRES_PASSWORD=postgres \
     -e POSTGRES_DB=midb \
@@ -48,7 +48,7 @@ if docker ps | grep -q postgres-db; then
     echo -e "${GREEN}Base de datos PostgreSQL está corriendo correctamente${NC}"
     echo -e "${BLUE}Puedes conectarte con:${NC}"
     echo "Host: localhost"
-    echo "Puerto: 5432"
+    echo "Puerto: 5434"
     echo "Usuario: postgres"
     echo "Base de datos: midb"
 

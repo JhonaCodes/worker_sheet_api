@@ -1,7 +1,7 @@
 # En setup_database.sh
 docker run --name postgres-db \
     --network=mi-red \
-    -p 5432:5432 \
+    -p 5434:5432 \
     -d mi-postgres
 
 # En setup_api.sh

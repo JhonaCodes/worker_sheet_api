@@ -30,7 +30,7 @@ RUN apt-get update && \
 COPY --from=builder /usr/src/app/target/release/worker_sheet_api /usr/local/bin/worker_sheet_api
 
 # Variables de entorno para la base de datos
-ENV DATABASE_URL=postgres://postgres:postgres@postgres-db:5432/midb
+ENV DATABASE_URL=postgres://postgres:postgres@postgres-db:5434/midb
 
 # Puerto en el que correrá la aplicación
 EXPOSE 3000

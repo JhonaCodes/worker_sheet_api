@@ -64,14 +64,14 @@ async fn get_worker_by_id(
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Configurar la conexión a la base de datos
-    let database_url = std::env::var("DATABASE_URL")
-        .unwrap_or_else(|_| "postgres://postgres:postgres@postgres-db:5432/midb".to_string());
+    // let database_url = std::env::var("DATABASE_URL")
+    //     .unwrap_or_else(|_| "postgres://postgres:postgres@postgres-db:5434/midb".to_string());
 
 
     // Crear el pool de conexiones
     let pool = PgPoolOptions::new()
         .max_connections(5)
-        .connect(&*database_url)
+        .connect("postgres://postgres:postgres@localhost:5434/midb")
         .await?;
 
     // Crear el estado compartido
