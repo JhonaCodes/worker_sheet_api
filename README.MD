@@ -1,171 +1,173 @@
-# Sistema de Gestión de Trabajadores
 
-Este proyecto implementa un sistema de gestión de trabajadores utilizando una arquitectura de microservicios con Docker. Consiste en una API REST desarrollada en Rust con Axum y una base de datos PostgreSQL.
 
-## Requisitos Previos
+<div align="center">
+<h1>Worker Sheet API</h1> 
 
-- Docker v20.10.0 o superior
-- Docker Compose v2.0.0 o superior
-- Git
+![Rust](https://img.shields.io/badge/rust-1.78.0-orange.svg)
+![Actix Web](https://img.shields.io/badge/actix--web-4.0-blue.svg)
+![Diesel](https://img.shields.io/badge/diesel-2.1.0-green.svg)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-blue.svg)](https://www.postgresql.org)
+![License](https://img.shields.io/badge/license-Proprietary-red.svg)
+![Copyright](https://img.shields.io/badge/copyright-©%202024-red.svg)
+![Rights](https://img.shields.io/badge/rights-All%20Reserved-red.svg)
+![Usage](https://img.shields.io/badge/usage-Restricted-red.svg)
+![Protection](https://img.shields.io/badge/protection-Maximum-darkred.svg)
 
-## Estructura del Proyecto
+Una API robusta para el sistema de bitácora Worker Sheet, construida con Rust, Actix-Web y Diesel.
 
-```
-.
-├── api/
-│   ├── src/
-│   │   └── main.rs
-│   ├── Cargo.toml
-│   └── Dockerfile
-├── database/
-│   ├── init/
-│   │   └── init.sql
-│   └── Dockerfile
-├── scripts/
-│   ├── setup_api.sh
-│   └── setup_database.sh
-└── docker-compose.yml
-```
+[Documentación](#documentación) •
+[Instalación](#instalación) •
+[Uso](#uso) •
+[Contribuir](#contribuir) •
+[Licencia](#licencia)
 
-## Configuración Inicial
+</div>
 
-1. Clonar el repositorio:
-```bash
-git clone <url-del-repositorio>
-cd sistema-trabajadores
-```
+## 🎯 Descripción
 
-2. Configurar variables de entorno (opcional):
-```bash
-# Por defecto se usarán estas configuraciones
-export POSTGRES_USER=postgres
-export POSTGRES_PASSWORD=postgres
-export POSTGRES_DB=midb
-export API_PORT=3000
-```
+Worker Sheet API es un backend moderno y de alto rendimiento diseñado para servir como sistema de bitácora empresarial. Implementado en Rust, aprovecha la seguridad de tipos y el rendimiento del lenguaje junto con frameworks maduros como Actix-Web y Diesel ORM.
 
-## Instalación y Ejecución
+### Características Principales
 
-### Método 1: Usando Docker Compose (Recomendado)
+- ✨ Arquitectura modular basada en features
+- 🔐 Sistema de autenticación robusto
+- 🚀 Alto rendimiento y baja latencia
+- 📦 ORM con Diesel para manejo seguro de datos
+- 🔄 API RESTful con documentación completa
+- 🛡️ Seguridad y validación integradas
 
-1. Iniciar todos los servicios:
-```bash
-docker-compose up -d
-```
+## 📚 Documentación
 
-2. Verificar que los servicios estén corriendo:
-```bash
-docker-compose ps
-```
+La documentación completa del proyecto está organizada en las siguientes secciones:
 
-### Método 2: Usando Scripts Individuales
+- [Actix Web Implementation](doc/actix.md)
+   - Configuración y uso de Actix-Web
+   - Estructuras de endpoints
+   - Middleware y seguridad
+   - Manejo de estados y respuestas
 
-1. Crear la red de Docker:
-```bash
-docker network create mi-red
-```
+- [Diesel ORM Guide](doc/diesel.md)
+   - Configuración de Diesel
+   - Modelos y migraciones
+   - Queries y relaciones
+   - Pool de conexiones
 
-2. Iniciar la base de datos:
-```bash
-chmod +x scripts/setup_database.sh
-./scripts/setup_database.sh
-```
+- [Diesel Commands Reference](doc/diesel_command.md)
+   - Comandos CLI de Diesel
+   - Gestión de migraciones
+   - Utilidades de base de datos
+   - Troubleshooting
 
-3. Iniciar la API:
-```bash
-chmod +x scripts/setup_api.sh
-./scripts/setup_api.sh
-```
+## 🚀 Instalación
 
-## Verificación del Sistema
+### Prerequisitos
 
-1. Comprobar el estado de la API:
-```bash
-curl http://localhost:3000/
-# Debería responder: "API Funcionando!"
-```
-
-2. Listar trabajadores:
-```bash
-curl http://localhost:3000/workers
-```
-
-3. Obtener un trabajador específico:
-```bash
-curl http://localhost:3000/workers/1
-```
-
-## Detener el Sistema
-
-### Con Docker Compose:
-```bash
-docker-compose down
-```
-
-### Con Scripts Individuales:
-```bash
-docker stop api-axum postgres-db
-docker rm api-axum postgres-db
-```
-
-## Estructura de la Base de Datos
-
-La tabla principal `workers` tiene la siguiente estructura:
-
-```sql
-CREATE TABLE workers (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    position VARCHAR(100) NOT NULL,
-    department VARCHAR(100),
-    salary DECIMAL(10,2),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-## Endpoints de la API
-
-| Método | Ruta | Descripción |
-|--------|------|-------------|
-| GET | / | Health check |
-| GET | /workers | Lista todos los trabajadores |
-| GET | /workers/:id | Obtiene un trabajador específico |
-
-## Solución de Problemas Comunes
-
-1. **Error de conexión a la base de datos**:
-    - Verificar que la red de Docker esté creada: `docker network ls`
-    - Comprobar los logs de la base de datos: `docker logs postgres-db`
-
-2. **API no responde**:
-    - Verificar los logs de la API: `docker logs api-axum`
-    - Comprobar que los puertos estén correctamente expuestos: `docker ps`
-
-3. **Problemas de permisos en los scripts**:
-    - Asegurar que los scripts tienen permisos de ejecución: `chmod +x scripts/*.sh`
-
-## Desarrollo Local
-
-Para desarrollar localmente, puedes modificar la URL de la base de datos en las variables de entorno:
+- Rust 1.78.0 o superior
+- PostgreSQL 14+
+- Diesel CLI
 
 ```bash
-export DATABASE_URL=postgres://postgres:postgres@localhost:5432/midb
+# Instalar Rust
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# Instalar Diesel CLI
+cargo install diesel_cli --no-default-features --features postgres
 ```
 
-## Contribución
+### Configuración
 
-1. Fork el repositorio
-2. Crea una rama para tu feature: `git checkout -b feature/nueva-caracteristica`
-3. Commit tus cambios: `git commit -am 'Agregar nueva característica'`
-4. Push a la rama: `git push origin feature/nueva-caracteristica`
-5. Crea un Pull Request
+1. Clonar el repositorio
+```bash
+git clone https://github.com/JhonaCodes/worker_sheet_api.git
+cd worker_sheet_api
+```
 
-## Contacto
+2. Configurar variables de entorno
+```bash
+cp .env.example .env
+# Editar .env con tus configuraciones
+```
 
-- Desarrollador: Jhonatan Ortiz
-- Universidad: Politécnico Gran Colombiano
-- Año: 2024
+3. Configurar la base de datos
+```bash
+diesel setup
+diesel migration run
+```
 
-## Licencia
+4. Compilar y ejecutar
+```bash
+cargo run
+```
 
-Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
+## 💻 Uso
+
+### Endpoints Principales
+
+```bash
+# Autenticación
+POST /api/auth/login
+POST /api/auth/register
+
+# Bitácoras
+GET /api/sheets
+POST /api/sheets
+PUT /api/sheets/{id}
+DELETE /api/sheets/{id}
+
+# Usuarios
+GET /api/users
+POST /api/users
+PUT /api/users/{id}
+DELETE /api/users/{id}
+```
+
+Para más detalles, consulta la [documentación de la API](doc/actix.md).
+
+## 🛠️ Desarrollo
+
+### Estructura del Proyecto
+
+```
+src/
+├── main.rs              # Punto de entrada
+├── db.rs                # Configuración de base de datos
+├── schema.rs            # Schema de Diesel        
+├── auth/            # Autenticación
+├── sheet/           # Lógica de bitácoras
+└── user/            # Gestión de usuarios
+```
+
+### Comandos Útiles
+
+```bash
+# Ejecutar tests
+cargo test
+
+# Formatear código
+cargo fmt
+
+# Verificar código
+cargo clippy
+
+# Crear nueva migración
+diesel migration generate nombre_migracion
+```
+
+## 📝 Licencia
+
+Este proyecto está bajo `LICENCIA DE USO RESTRICTIVO Y CONFIDENCIALIDAD` - ver el archivo [LICENSE](LICENSE) para más detalles.
+
+## 👥 Autores
+
+- **Jhonatan Restrepo** - *Trabajo Inicial* - [JhonaCodes](https://github.com/JhonaCodes)
+
+## 🙏 Agradecimientos
+
+- Comunidad de Rust
+- Contribuidores de Actix-Web
+- Equipo de Diesel ORM
+
+---
+<div align="center">
+Desarrollado con ❤️ por Jhonatan Ortiz
+</div>

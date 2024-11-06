@@ -1,39 +1,44 @@
-# Dockerfile con multi-stage build para optimizar el tamaño y la seguridad
-FROM rust:1.75-slim-bullseye as builder
+FROM rust:1.78.0 as builder
+
+WORKDIR /app
+
+# Instalar diesel_cli en el contenedor de construcción
+RUN cargo install diesel_cli --no-default-features --features postgres
 
 # Instalar dependencias necesarias para la compilación
 RUN apt-get update && \
-    apt-get install -y pkg-config libssl-dev && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get install -y \
+    libpq-dev \
+    pkg-config
 
-# Crear un directorio nuevo para nuestro código
-WORKDIR /usr/src/app
+# Copiar archivos de migración
+COPY migrations ./migrations
+COPY src ./src
+COPY Cargo.toml Cargo.lock ./
+COPY diesel.toml ./
 
-# Copiar los archivos del proyecto
-COPY . .
-
-# Compilar la aplicación en modo release
+# Crear el archivo 'target' sin copiar el código fuente
 RUN cargo build --release
 
-# Usar la misma imagen base para la etapa final
-FROM debian:bullseye-slim
+# Usar una imagen base más reciente con GLIBC actualizado
+FROM debian:bookworm-slim
 
 # Instalar dependencias necesarias
-RUN apt-get update && \
-    apt-get install -y \
-    libssl1.1 \
+RUN apt-get update && apt-get install -y \
+    libssl-dev \
     libpq5 \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Copiar el binario compilado desde el builder
-COPY --from=builder /usr/src/app/target/release/worker_sheet_api /usr/local/bin/worker_sheet_api
+# Copiar la aplicación compilada y las migraciones
+COPY --from=builder /app/target/release/worker_sheet_api /usr/local/bin/worker_sheet_api
+COPY --from=builder /app/migrations /migrations
+COPY --from=builder /usr/local/cargo/bin/diesel /usr/local/bin/diesel
 
-# Variables de entorno para la base de datos
-ENV DATABASE_URL=postgres://postgres:postgres@postgres-db:5434/midb
+# Script de inicio para ejecutar migraciones y luego la aplicación
+COPY scripts/start.sh /start.sh
+RUN chmod +x /start.sh
 
-# Puerto en el que correrá la aplicación
-EXPOSE 3000
+EXPOSE ${SERVER_PORT}
 
-# Comando para ejecutar la aplicación
-CMD ["/usr/local/bin/worker_sheet_api"]
+CMD ["/start.sh"]

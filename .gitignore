@@ -1,2 +1,6 @@
 /target
 .env
+dev.env
+/scripts/env.sh
+/scripts/api.sh
+/scripts/diesel.sh

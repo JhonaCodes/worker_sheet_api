@@ -4,10 +4,36 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-axum = "0.7"
-tokio = { version = "1.0", features = ["full"] }
+
+# Principal libs for api
+actix = "0.13.5"
+actix-web = "4.9.0"
+diesel = { version = "2.2.4", features = ["postgres", "r2d2"] }
+
+# Parce Libs
 serde = { version = "1.0", features = ["derive"] }
-sqlx = { version = "0.8.2", features = ["runtime-tokio-native-tls", "postgres", "time", "rust_decimal"] }
 serde_json = "1.0"
-time = { version = "0.3", features = ["serde"] }
-rust_decimal = { version = "1.32", features = ["serde"] }
+
+# General Libs
+time = "0.3.36"
+uuid = { version = "1.11.0", features = ["v4", "serde"] }
+
+# Enviroment Libs
+dotenvy = "0.15.0"
+
+
+# Hasing cryto
+#argonautica = "0.2.0"
+#hmac = "0.12.1"
+jwt = "0.16.0"
+sha2 = "0.10.8"
+r2d2 = "0.8.10"
+
+# Log and depuration
+log = "0.4.21"
+env_logger = "0.11.3"
+
+
+[[bin]]
+name = "worker_sheet_api"
+path = "src/main.rs"

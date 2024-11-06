@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Worker Sheet API - Digital Work Management</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary: #475569;
+            --accent: #e11d48;
+            --background: #f8fafc;
+            --text: #1e293b;
+            --gray-light: #e2e8f0;
+            --white: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .navbar {
+            background-color: var(--white);
+            padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .nav-links a {
+            color: var(--secondary);
+            text-decoration: none;
+            margin-left: 2rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .hero {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: var(--white);
+            padding: 8rem 2rem 4rem;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            font-weight: 800;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+            opacity: 0.9;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.375rem;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .button-primary {
+            background-color: var(--white);
+            color: var(--primary);
+        }
+
+        .button-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .features {
+            max-width: 1200px;
+            margin: 4rem auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .feature-card h3 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+        }
+
+        .api-section {
+            max-width: 1200px;
+            margin: 4rem auto;
+            padding: 0 2rem;
+        }
+
+        .api-section h2 {
+            color: var(--primary);
+            margin-bottom: 2rem;
+            font-size: 2rem;
+        }
+
+        .endpoint {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--gray-light);
+        }
+
+        .endpoint-method {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-right: 0.5rem;
+        }
+
+        .get { background: #dbeafe; color: #1e40af; }
+        .post { background: #dcfce7; color: #166534; }
+        .put { background: #fef3c7; color: #92400e; }
+        .delete { background: #fee2e2; color: #991b1b; }
+
+        .endpoint-path {
+            font-family: monospace;
+            font-size: 1rem;
+        }
+
+        footer {
+            background: var(--white);
+            padding: 2rem;
+            text-align: center;
+            margin-top: 4rem;
+            border-top: 1px solid var(--gray-light);
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar">
+    <div class="navbar-content">
+        <a href="#" class="logo">Worker Sheet API</a>
+        <div class="nav-links">
+            <a href="#features">Características</a>
+            <a href="#api">API</a>
+            <a href="#docs">Documentación</a>
+        </div>
+    </div>
+</nav>
+
+<header class="hero">
+    <h1>Worker Sheet API</h1>
+    <p>Sistema de gestión digital para control y registro de actividades laborales con soporte offline</p>
+    <a href="#api" class="button button-primary">Ver Documentación API</a>
+</header>
+
+<section id="features" class="features">
+    <div class="feature-card">
+        <h3>Gestión de Usuarios</h3>
+        <p>Sistema completo de autenticación y gestión de perfiles de usuario con roles y permisos.</p>
+    </div>
+    <div class="feature-card">
+        <h3>Control de Actividades</h3>
+        <p>Registro detallado de actividades con soporte para geolocalización y evidencia fotográfica.</p>
+    </div>
+    <div class="feature-card">
+        <h3>Sincronización Offline</h3>
+        <p>Capacidad de trabajo sin conexión con sincronización automática cuando hay conectividad.</p>
+    </div>
+</section>
+
+<section id="api" class="api-section">
+    <h2>Endpoints Disponibles</h2>
+
+    <div class="endpoint">
+        <span class="endpoint-method get">GET</span>
+        <span class="endpoint-path">/api/health</span>
+        <p>Verificar el estado del servicio</p>
+    </div>
+
+    <div class="endpoint">
+        <span class="endpoint-method post">POST</span>
+        <span class="endpoint-path">/api/auth/login</span>
+        <p>Autenticación de usuarios</p>
+    </div>
+
+    <div class="endpoint">
+        <span class="endpoint-method get">GET</span>
+        <span class="endpoint-path">/api/activities</span>
+        <p>Obtener lista de actividades</p>
+    </div>
+
+    <div class="endpoint">
+        <span class="endpoint-method post">POST</span>
+        <span class="endpoint-path">/api/activities</span>
+        <p>Crear nueva actividad</p>
+    </div>
+
+    <div class="endpoint">
+        <span class="endpoint-method put">PUT</span>
+        <span class="endpoint-path">/api/activities/:id</span>
+        <p>Actualizar actividad existente</p>
+    </div>
+
+    <div class="endpoint">
+        <span class="endpoint-method delete">DELETE</span>
+        <span class="endpoint-path">/api/activities/:id</span>
+        <p>Eliminar actividad</p>
+    </div>
+</section>
+
+<footer>
+    <p>© 2024 Worker Sheet API. Todos los derechos reservados.</p>
+</footer>
+
+<script>
+    // Smooth scroll para los enlaces de navegación
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            document.querySelector(this.getAttribute('href')).scrollIntoView({
+                behavior: 'smooth'
+            });
+        });
+    });
+
+    // Animación de la barra de navegación al hacer scroll
+    let navbar = document.querySelector('.navbar');
+    let lastScroll = 0;
+
+    window.addEventListener('scroll', () => {
+        const currentScroll = window.pageYOffset;
+
+        if (currentScroll <= 0) {
+            navbar.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+            return;
+        }
+
+        if (currentScroll > lastScroll) {
+            navbar.style.transform = 'translateY(-100%)';
+        } else {
+            navbar.style.transform = 'translateY(0)';
+            navbar.style.boxShadow = '0 1px 3px rgba(0,0,0,0.2)';
+        }
+
+        lastScroll = currentScroll;
+    });
+</script>
+</body>
+</html>

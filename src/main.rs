@@ -1,93 +1,61 @@
-use axum::{
-    routing::get,
-    Router,
-    response::Json,
-    extract::State,
+pub mod schema;
+mod auth;
+mod env;
+mod r#static;
+mod user;
+mod db;
+
+use actix_web::{web, App, HttpServer};
+use dotenvy::dotenv;
+use crate::env::models::{AppConfig};
+
+use std::io::{
+    Result
 };
-use serde::{Serialize, Deserialize};
 
-use std::sync::Arc;
-use axum::extract::Path;
-use rust_decimal::Decimal;
-use sqlx::PgPool;
-use sqlx::postgres::PgPoolOptions;
-use time::OffsetDateTime;
+use crate::auth::service::user_data;
+use crate::db::establish_connection_pool;
+use crate::r#static::service::index_page;
+use crate::user::service::{create_user, delete_user, get_user, get_users, update_user};
 
-#[derive(Serialize, Deserialize, sqlx::FromRow)]
-struct Worker {
-    id: i32,
-    name: String,
-    position: String,
-    department: Option<String>,
-    salary: Decimal,
-    created_at: Option<OffsetDateTime>,
-}
+#[actix_web::main]
+async fn main() -> Result<()> {
 
-#[derive(Clone)]
-struct AppState {
-    pool: PgPool,
-}
+    // Cargar el entorno una sola vez al inicio
+    if dotenvy::from_filename("dev.env").is_err() {
+        dotenvy::from_filename(".env").ok();
+    }
+    
+    // Initialization for logger
+    env_logger::init();
+    dotenv().ok();
 
-async fn health_check() -> &'static str {
-    "API Funcionando!"
-}
+    // Contain a local environments and servers data.
+    let app_config = AppConfig::init_config();
 
-async fn get_workers(
-    State(state): State<Arc<AppState>>
-) -> Json<Vec<Worker>> {
-    let workers = sqlx::query_as::<_, Worker>(
-        "SELECT id, name, position, department, salary, created_at FROM workers"
-    )
-        .fetch_all(&state.pool)
+    // Initialize database connection pool
+    let pool = establish_connection_pool();
+
+    // Server configuration
+    let server = HttpServer::new(move || {
+        App::new()
+            .app_data(web::Data::new(pool.clone()))
+            .wrap(actix_web::middleware::Logger::default())
+            .service(index_page)
+            .service(user_data)
+            .service(get_users)
+            .service(get_user)
+            .service(create_user)
+            .service(update_user)
+            .service(delete_user)
+    });
+
+    println!("Server running {}:{}", app_config.server.host, app_config.server.port);
+
+    // Server initialization
+    server
+        .bind((app_config.server.host, app_config.server.port))?
+        .run()
         .await
-        .unwrap_or(vec![]);
-
-    Json(workers)
 }
 
-// Endpoint para obtener un trabajador por ID
-async fn get_worker_by_id(
-    State(state): State<Arc<AppState>>,
-    Path(id): Path<i32>,
-) -> Json<Option<Worker>> {
-    let worker = sqlx::query_as::<_, Worker>(
-        "SELECT id, name, position, department, salary, created_at FROM workers WHERE id = $1"
-    )
-        .bind(id)
-        .fetch_optional(&state.pool)
-        .await
-        .unwrap_or(None);
-
-    Json(worker)
-}
-
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Configurar la conexión a la base de datos
-    // let database_url = std::env::var("DATABASE_URL")
-    //     .unwrap_or_else(|_| "postgres://postgres:postgres@postgres-db:5434/midb".to_string());
-
-
-    // Crear el pool de conexiones
-    let pool = PgPoolOptions::new()
-        .max_connections(5)
-        .connect("postgres://postgres:postgres@localhost:5434/midb")
-        .await?;
-
-    // Crear el estado compartido
-    let state = Arc::new(AppState { pool });
-
-    // Configurar el router
-    let app = Router::new()
-        .route("/", get(health_check))
-        .route("/workers", get(get_workers))
-        .route("/workers/:id", get(get_worker_by_id))
-        .with_state(state);
-
-    println!("Servidor corriendo en http://localhost:3000");
-
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await?;
-    axum::serve(listener, app).await?;
-
-    Ok(())
-}
