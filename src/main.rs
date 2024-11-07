@@ -1,17 +1,15 @@
-pub mod schema;
 mod auth;
+mod db;
 mod env;
+pub mod schema;
 mod r#static;
 mod user;
-mod db;
 
+use crate::env::models::AppConfig;
 use actix_web::{web, App, HttpServer};
 use dotenvy::dotenv;
-use crate::env::models::{AppConfig};
 
-use std::io::{
-    Result
-};
+use std::io::Result;
 
 use crate::auth::service::user_data;
 use crate::db::establish_connection_pool;
@@ -20,12 +18,11 @@ use crate::user::service::{create_user, delete_user, get_user, get_users, update
 
 #[actix_web::main]
 async fn main() -> Result<()> {
-
     // Cargar el entorno una sola vez al inicio
     if dotenvy::from_filename("dev.env").is_err() {
         dotenvy::from_filename(".env").ok();
     }
-    
+
     // Initialization for logger
     env_logger::init();
     dotenv().ok();
@@ -50,7 +47,10 @@ async fn main() -> Result<()> {
             .service(delete_user)
     });
 
-    println!("Server running {}:{}", app_config.server.host, app_config.server.port);
+    println!(
+        "Server running {}:{}",
+        app_config.server.host, app_config.server.port
+    );
 
     // Server initialization
     server
@@ -58,4 +58,3 @@ async fn main() -> Result<()> {
         .run()
         .await
 }
-

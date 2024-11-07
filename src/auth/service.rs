@@ -1,7 +1,7 @@
 use actix_web::{get, web::Json};
 
-use uuid::Uuid;
 use crate::auth::models::UserInfo;
+use uuid::Uuid;
 
 #[get("/user")]
 pub async fn user_data() -> Result<Json<UserInfo>, actix_web::Error> {
@@ -10,8 +10,6 @@ pub async fn user_data() -> Result<Json<UserInfo>, actix_web::Error> {
         name: String::from("John Doe"),
         email: String::from("john@example.com"),
     };
-    
-    
+
     Ok(Json(user))
- 
 }
