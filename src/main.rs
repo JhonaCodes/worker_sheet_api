@@ -14,7 +14,7 @@ use std::io::Result;
 use crate::auth::service::user_data;
 use crate::db::establish_connection_pool;
 use crate::r#static::service::index_page;
-use crate::user::service::{create_user, delete_user, get_user, get_users, update_user};
+// use crate::user::service::{create_user, delete_user, get_user, get_users, update_user};
 
 #[actix_web::main]
 async fn main() -> Result<()> {
@@ -40,11 +40,6 @@ async fn main() -> Result<()> {
             .wrap(actix_web::middleware::Logger::default())
             .service(index_page)
             .service(user_data)
-            .service(get_users)
-            .service(get_user)
-            .service(create_user)
-            .service(update_user)
-            .service(delete_user)
     });
 
     println!(
