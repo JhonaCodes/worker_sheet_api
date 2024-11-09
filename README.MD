@@ -1,159 +1,207 @@
-
-
-<div align="center">
-<h1>Worker Sheet API</h1> 
+# Worker Sheet API
 
 ![Rust](https://img.shields.io/badge/rust-1.78.0-orange.svg)
 ![Actix Web](https://img.shields.io/badge/actix--web-4.0-blue.svg)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-blue.svg)](https://www.postgresql.org)
-![License](https://img.shields.io/badge/license-Proprietary-red.svg)
-![Copyright](https://img.shields.io/badge/copyright-©%202024-red.svg)
-![Rights](https://img.shields.io/badge/rights-All%20Reserved-red.svg)
-![Usage](https://img.shields.io/badge/usage-Restricted-red.svg)
-![Protection](https://img.shields.io/badge/protection-Maximum-darkred.svg)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-blue.svg)
 
-Una API robusta para el sistema de bitácora Worker Sheet, construida con Rust, Actix-Web y Diesel.
+API REST construida con Rust, Actix-Web y SQLx para gestión de bitácoras de trabajo.
 
-[Documentación](#documentación) •
-[Instalación](#instalación) •
-[Uso](#uso) •
-[Contribuir](#contribuir) •
-[Licencia](#licencia)
+## 📋 Prerequisitos
 
-</div>
-
-## 🎯 Descripción
-
-Worker Sheet API es un backend moderno y de alto rendimiento diseñado para servir como sistema de bitácora empresarial. Implementado en Rust, aprovecha la seguridad de tipos y el rendimiento del lenguaje junto con frameworks maduros como Actix-Web y Diesel ORM.
-
-### Características Principales
-
-- ✨ Arquitectura modular basada en features
-- 🔐 Sistema de autenticación robusto
-- 🚀 Alto rendimiento y baja latencia
-- 🔄 API RESTful con documentación completa
-- 🛡️ Seguridad y validación integradas
-
-## 📚 Documentación
-
-La documentación completa del proyecto está organizada en las siguientes secciones:
-
-- [Actix Web Implementation](doc/actix.md)
-   - Configuración y uso de Actix-Web
-   - Estructuras de endpoints
-   - Middleware y seguridad
-   - Manejo de estados y respuestas
-
-## 🚀 Instalación
-
-### Prerequisitos
-
-- Rust 1.78.0 o superior
-- PostgreSQL 14+
-- Diesel CLI
+Antes de comenzar, asegúrate de tener instalado:
 
 ```bash
-# Instalar Rust
+# 1. Rust y Cargo
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source $HOME/.cargo/env
 
-# Instalar Diesel CLI
-cargo install diesel_cli --no-default-features --features postgres
+# 2. PostgreSQL
+sudo apt update
+sudo apt install postgresql postgresql-contrib
+
+# 3. Docker y Docker Compose
+sudo apt install docker.io docker-compose
 ```
 
-### Configuración
+## 🚀 Inicio Rápido
 
-1. Clonar el repositorio
+### 1. Clonar e Instalar
 ```bash
-git clone https://github.com/JhonaCodes/worker_sheet_api.git
+# Clonar repositorio
+git clone https://github.com/JhonaCodes/worker_sheet_api
 cd worker_sheet_api
+
+# Copiar archivos de ambiente
+cp .env.example .env        # Para producción
+cp .env.example dev.env     # Para desarrollo
 ```
 
-2. Configurar variables de entorno
-```bash
-cp .env.example .env
-# Editar .env con tus configuraciones
+### 2. Configurar Variables de Entorno
+
+Edita los archivos `.env` y `dev.env` según tu entorno:
+
+```env
+# Valores ejemplo para dev.env (desarrollo)
+APP_ENV=dev
+DATABASE_USER=tu_usuario
+DATABASE_PASSWORD=tu_password
+DATABASE_PORT=5434         # Puerto diferente para desarrollo
+DATABASE_NAME=worker_sheet_dev
+DATABASE_HOST=localhost
+SERVER_PORT=3000
+
+# Para .env (producción) usa valores seguros y puerto 5432
 ```
 
-3. Configurar la base de datos
+### 3. Iniciando en Modo Desarrollo
+
+Tienes dos opciones para iniciar el proyecto:
+
+#### Opción 1: Usando el Script Automatizado
 ```bash
-diesel setup
-diesel migration run
+# Da permisos de ejecución
+chmod +x scripts/app.sh
+
+# Inicia en modo desarrollo
+./scripts/app.sh dev
 ```
 
-4. Compilar y ejecutar
+#### Opción 2: Manualmente
 ```bash
+# 1. Inicia la base de datos en Docker
+docker compose --env-file dev.env --profile dev up db_dev -d
+
+# 2. Verifica que la base de datos esté activa
+docker compose ps
+
+# 3. Inicia la API localmente
 cargo run
 ```
 
-## 💻 Uso
+### 4. Iniciando en Modo Producción
 
-### Endpoints Principales
-
+#### Opción 1: Script Automatizado
 ```bash
-# Autenticación
-POST /api/auth/login
-POST /api/auth/register
-
-# Bitácoras
-GET /api/sheets
-POST /api/sheets
-PUT /api/sheets/{id}
-DELETE /api/sheets/{id}
-
-# Usuarios
-GET /api/users
-POST /api/users
-PUT /api/users/{id}
-DELETE /api/users/{id}
+./scripts/app.sh prod
 ```
 
-Para más detalles, consulta la [documentación de la API](doc/actix.md).
+#### Opción 2: Manualmente
+```bash
+# Construye e inicia todos los servicios
+docker compose --profile prod up --build -d
 
-## 🛠️ Desarrollo
+# Verifica los servicios
+docker compose ps
+```
 
-### Estructura del Proyecto
+## 📊 Estructura del Proyecto
 
 ```
 src/
-├── main.rs              # Punto de entrada
-├── db.rs                # Configuración de base de datos
-├── schema.rs            # Schema de Diesel        
-├── auth/            # Autenticación
-├── sheet/           # Lógica de bitácoras
-└── user/            # Gestión de usuarios
+├── auth/              # Autenticación y autorización
+├── user/              # Gestión de usuarios
+├── env/               # Configuración de entorno
+└── static/            # Archivos estáticos
 ```
 
-### Comandos Útiles
+## 🔧 Comandos Útiles
 
+### Docker
 ```bash
+# Ver logs de la base de datos
+docker compose logs db_dev     # Desarrollo
+docker compose logs db        # Producción
+
+# Detener servicios
+docker compose --profile dev down  # Desarrollo
+docker compose --profile prod down # Producción
+
+# Reiniciar servicios
+docker compose --profile dev restart  # Desarrollo
+docker compose --profile prod restart # Producción
+```
+
+### Base de Datos
+```bash
+# Conectar a la base de datos (desarrollo)
+psql -h localhost -p 5434 -U tu_usuario -d worker_sheet_dev
+
+# Ver tablas
+\dt
+
+# Salir de psql
+\q
+```
+
+### Rust
+```bash
+# Compilar y verificar errores
+cargo check
+
 # Ejecutar tests
 cargo test
 
-# Formatear código
-cargo fmt
-
-# Verificar código
-cargo clippy
-
-# Crear nueva migración
-diesel migration generate nombre_migracion
+# Compilar para producción
+cargo build --release
 ```
 
-## 📝 Licencia
+## 🌱 Ambientes
 
-Este proyecto está bajo `LICENCIA DE USO RESTRICTIVO Y CONFIDENCIALIDAD` - ver el archivo [LICENSE](LICENSE) para más detalles.
+### Desarrollo
+- Base de datos en contenedor Docker
+- API ejecutándose localmente
+- Hot-reloading disponible
+- Puerto de base de datos: 5434
 
-## 👥 Autores
+### Producción
+- Base de datos y API en contenedores separados
+- Optimizado para rendimiento
+- Puerto de base de datos: 5432
 
-- **Jhonatan Restrepo** - *Trabajo Inicial* - [JhonaCodes](https://github.com/JhonaCodes)
+## 📝 Notas Importantes
 
-## 🙏 Agradecimientos
+1. **Desarrollo vs Producción**
+  - En desarrollo, solo la base de datos corre en Docker
+  - En producción, tanto la API como la base de datos corren en containers
 
-- Comunidad de Rust
-- Contribuidores de Actix-Web
-- Equipo de Diesel ORM
+2. **Scripts SQL**
+  - Los scripts en la carpeta `sql/` se ejecutan automáticamente al iniciar la base de datos
+  - El orden de ejecución está definido en `init.sql`
 
----
-<div align="center">
-Desarrollado con ❤️ por Jhonatan Ortiz
-</div>
+3. **Variables de Entorno**
+  - Nunca comitear `.env` o `dev.env` con contraseñas reales
+  - Usar contraseñas seguras en producción
+
+4. **Puertos**
+  - API: 3000 (configurable en variables de entorno)
+  - DB Desarrollo: 5434
+  - DB Producción: 5432
+
+## 🔍 Diagnóstico de Problemas
+
+1. **La base de datos no inicia**
+   ```bash
+   # Verifica los logs
+   docker compose logs db_dev
+   
+   # Verifica que el puerto no esté en uso
+   sudo lsof -i :5434
+   ```
+
+2. **La API no compila**
+   ```bash
+   # Limpia los artefactos de compilación
+   cargo clean
+   
+   # Actualiza las dependencias
+   cargo update
+   ```
+
+3. **Error de conexión a la base de datos**
+  - Verifica que las variables de entorno sean correctas
+  - Confirma que el contenedor de la base de datos esté activo
+  - Comprueba la conectividad al puerto correcto
+
+## 🔒 Licencia
+
+Este proyecto está bajo una licencia propietaria. Ver el archivo [LICENSE](LICENSE) para más detalles.
