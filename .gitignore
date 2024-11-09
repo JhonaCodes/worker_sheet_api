@@ -1,6 +1,44 @@
+# IDEs y editores
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+
+# Rust
 /target
+**/*.rs.bk
+Cargo.lock
+
+# Logs y bases de datos
+*.log
+*.sqlite
+*.db
+
+
+# Archivos de entorno
 .env
 dev.env
+*.env
+!.env.example
+
+
+# Docker
+.docker/
+docker-compose.override.yml
+
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporales
+*.tmp
+*.temp
+*.swp
+*~
+
 /scripts/env.sh
 /scripts/api.sh
 /scripts/diesel.sh
+/scripts/git_reload.sh
