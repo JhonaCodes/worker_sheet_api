@@ -2,7 +2,7 @@ use serde::Deserialize;
 
 use ::std::env;
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize)]
 pub struct DatabaseConfig {
     pub url: String,
     pub user: String,
@@ -50,7 +50,7 @@ impl ServerConfig {
     }
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize)]
 pub struct AppConfig {
     pub is_debug_mode: bool,
     pub database: DatabaseConfig,

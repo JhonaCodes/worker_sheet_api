@@ -1,26 +1,29 @@
-FROM rust:1.78.0 as builder
+# Usar imagen oficial de Rust
+FROM rust:1.82.0 as builder
 
 WORKDIR /app
-
-# Instalar diesel_cli en el contenedor de construcción
-RUN cargo install diesel_cli --no-default-features --features postgres
 
 # Instalar dependencias necesarias para la compilación
 RUN apt-get update && \
     apt-get install -y \
+    curl \
     libpq-dev \
-    pkg-config
+    pkg-config \
+    postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copiar archivos de migración
-COPY migrations ./migrations
+# Instalar rustup para manejar las versiones de Rust
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+
+# Copiar los archivos del proyecto
+COPY sql /docker-entrypoint-initdb.d/
 COPY src ./src
 COPY Cargo.toml Cargo.lock ./
-COPY diesel.toml ./
 
-# Crear el archivo 'target' sin copiar el código fuente
+# Ejecutar la compilación
 RUN cargo build --release
 
-# Usar una imagen base más reciente con GLIBC actualizado
+# Usar una imagen base más ligera para el contenedor final
 FROM debian:bookworm-slim
 
 # Instalar dependencias necesarias
@@ -28,17 +31,17 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     libpq5 \
     ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+    postgresql-client && \
+    rm -rf /var/lib/apt/lists/*
 
-# Copiar la aplicación compilada y las migraciones
+# Copiar la aplicación compilada y los scripts SQL desde la imagen builder
 COPY --from=builder /app/target/release/worker_sheet_api /usr/local/bin/worker_sheet_api
-COPY --from=builder /app/migrations /migrations
-COPY --from=builder /usr/local/cargo/bin/diesel /usr/local/bin/diesel
-
-# Script de inicio para ejecutar migraciones y luego la aplicación
+COPY sql /docker-entrypoint-initdb.d/
 COPY scripts/start.sh /start.sh
 RUN chmod +x /start.sh
 
+# Exponer el puerto del servidor
 EXPOSE ${SERVER_PORT}
 
+# Iniciar la aplicación con el script start.sh
 CMD ["/start.sh"]

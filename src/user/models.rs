@@ -1,12 +1,11 @@
 use chrono::{NaiveDateTime};
-use diesel::{Insertable, Queryable, Selectable};
 use serde::{Deserialize, Serialize};
+use sqlx::FromRow;
+use uuid::Uuid;
 
-#[derive(Queryable, Selectable, Serialize, Deserialize, Debug, Clone)]
-#[diesel(table_name = crate::schema::users)]
-#[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct User {
-    pub id: String,
+#[derive(Serialize, Deserialize, FromRow)]
+pub struct Users {
+    pub id: Uuid,
     pub first_name: String,
     pub last_name: String,
     pub email: String,
@@ -21,10 +20,9 @@ pub struct User {
     pub updated_at: Option<NaiveDateTime>,
 }
 
-#[derive( Deserialize, Insertable, Debug, Clone)]
-#[diesel(table_name = crate::schema::users)]
+#[derive( Deserialize, Serialize, FromRow)]
 pub struct NewUser {
-    pub id: String,
+    pub id: Uuid,
     pub first_name: String,
     pub last_name: String,
     pub email: String,
@@ -41,8 +39,7 @@ pub struct NewUser {
 }
 
 
-#[derive(Insertable, Deserialize)]
-#[diesel(table_name = crate::schema::users)]
+#[derive( Deserialize)]
 pub struct UpdateUser {
     pub first_name: String,
     pub last_name: String,
@@ -58,11 +55,9 @@ pub struct UpdateUser {
     pub updated_at: Option<NaiveDateTime>,
 }
 
-#[derive(Queryable, Selectable, Serialize, Deserialize, Debug)]
-#[diesel(table_name = crate::schema::activities)]
-#[diesel(check_for_backend(diesel::pg::Pg))]
+#[derive(Serialize, Deserialize)]
 pub struct Activities {
-    pub id: String,
+    pub id: Uuid,
     pub title: String,
     pub description: String,
     pub status: String,
@@ -79,9 +74,7 @@ pub struct Activities {
     pub is_deleted: Option<bool>,
 }
 
-#[derive(Queryable, Selectable, Serialize, Deserialize, Debug)]
-#[diesel(table_name = crate::schema::activity_photos)]
-#[diesel(check_for_backend(diesel::pg::Pg))]
+#[derive(Serialize, Deserialize)]
 pub struct PhotoActivity{
     pub id: String,
     pub activity_id: String,

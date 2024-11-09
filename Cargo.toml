@@ -1,5 +1,6 @@
 [package]
 name = "worker_sheet_api"
+authors = ["Jhoncode<jhoancode2020@gmail.com>"]
 version = "0.1.0"
 edition = "2021"
 
@@ -8,12 +9,12 @@ edition = "2021"
 # Principal libs for api
 actix = "0.13.5"
 actix-web = "4.9.0"
-diesel = { version = "2.2.4", features = ["postgres", "r2d2", "chrono"] }
+sqlx  = {version = "0.8.2", features = ["postgres", "runtime-async-std-native-tls", "uuid", "chrono"]}
 
 
 # Parce Libs
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
+serde = {version = "1.0.198", features = ["derive"]}
+serde_json = "1.0.116"
 
 # General Libs
 time = "0.3.36"
@@ -23,19 +24,6 @@ chrono = {version = "0.4.38", features = ["serde"]}
 # Enviroment Libs
 dotenvy = "0.15.0"
 
-
-# Hasing cryto
-#argonautica = "0.2.0"
-#hmac = "0.12.1"
-jwt = "0.16.0"
-sha2 = "0.10.8"
-r2d2 = "0.8.10"
-
 # Log and depuration
 log = "0.4.21"
 env_logger = "0.11.3"
-
-
-[[bin]]
-name = "worker_sheet_api"
-path = "src/main.rs"
