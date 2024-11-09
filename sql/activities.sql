@@ -1,7 +1,5 @@
-create extension if not exists "uuid-ossp";
-
 create table if not exists activities (
-    id uuid not null primary key default uuid_generate_v4(),
+    id uuid not null primary key,
     user_id text not null,
     title text not null,
     description text not null,

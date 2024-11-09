@@ -5,7 +5,6 @@
 
 ![Rust](https://img.shields.io/badge/rust-1.78.0-orange.svg)
 ![Actix Web](https://img.shields.io/badge/actix--web-4.0-blue.svg)
-![Diesel](https://img.shields.io/badge/diesel-2.1.0-green.svg)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-blue.svg)](https://www.postgresql.org)
 ![License](https://img.shields.io/badge/license-Proprietary-red.svg)
 ![Copyright](https://img.shields.io/badge/copyright-©%202024-red.svg)
@@ -32,7 +31,6 @@ Worker Sheet API es un backend moderno y de alto rendimiento diseñado para serv
 - ✨ Arquitectura modular basada en features
 - 🔐 Sistema de autenticación robusto
 - 🚀 Alto rendimiento y baja latencia
-- 📦 ORM con Diesel para manejo seguro de datos
 - 🔄 API RESTful con documentación completa
 - 🛡️ Seguridad y validación integradas
 
@@ -45,18 +43,6 @@ La documentación completa del proyecto está organizada en las siguientes secci
    - Estructuras de endpoints
    - Middleware y seguridad
    - Manejo de estados y respuestas
-
-- [Diesel ORM Guide](doc/diesel.md)
-   - Configuración de Diesel
-   - Modelos y migraciones
-   - Queries y relaciones
-   - Pool de conexiones
-
-- [Diesel Commands Reference](doc/diesel_command.md)
-   - Comandos CLI de Diesel
-   - Gestión de migraciones
-   - Utilidades de base de datos
-   - Troubleshooting
 
 ## 🚀 Instalación
 

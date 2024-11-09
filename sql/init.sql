@@ -1,3 +1,4 @@
-\i users.sql
-\i activities.sql
-\i activity_photos.sql
+-- Luego las tablas en orden de dependencia
+\i /docker-entrypoint-initdb.d/users.sql
+\i /docker-entrypoint-initdb.d/activities.sql
+\i /docker-entrypoint-initdb.d/activity_photos.sql
