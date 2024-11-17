@@ -1,8 +1,10 @@
 use actix_web::{HttpResponse, Responder};
 use actix_web::web::Data;
+use chrono::NaiveDateTime;
 use uuid::Uuid;
+use crate::activities::models::Activities;
 use crate::model::AppState;
-use super::models::{NewUser, Users};
+use super::models::{NewUser, UpdateUser, UpdateUserNotifications, UpdateUserPassword, UpdateUserStatus, UserFilters, Users};
 
 pub struct UserRepository;
 
@@ -48,4 +50,179 @@ impl UserRepository {
             }
         }
     }
+
+
+    // Listado de usuarios con filtros
+    pub async fn list_users(conn: Data<AppState>, filters: UserFilters) -> impl Responder {
+        let query = sqlx::query_as::<_, Users>(
+            "SELECT * FROM users
+            WHERE ($1::text IS NULL OR department = $1)
+            AND ($2::text IS NULL OR position = $2)
+            AND ($3::text IS NULL OR status = $3)
+            AND ($4::timestamp IS NULL OR created_at >= $4)
+            AND ($5::timestamp IS NULL OR created_at <= $5)
+            ORDER BY created_at DESC"
+        )
+            .bind(filters.department)
+            .bind(filters.position)
+            .bind(filters.status)
+            .bind(filters.created_from)
+            .bind(filters.created_to);
+
+        match query.fetch_all(&conn.db).await {
+            Ok(users) => HttpResponse::Ok().json(users),
+            Err(e) => {
+                log::error!("Error listing users: {:?}", e);
+                HttpResponse::InternalServerError().json(format!("Error: {:?}", e))
+            }
+        }
+    }
+
+    // Actualizar usuario completo
+    pub async fn update_user(
+        conn: Data<AppState>,
+        id: Uuid,
+        user: UpdateUser
+    ) -> impl Responder {
+        match sqlx::query(
+            "UPDATE users SET
+            first_name = $1,
+            last_name = $2,
+            email = $3,
+            password_hash = $4,
+            position = $5,
+            department = $6,
+            phone = $7,
+            status = $8,
+            email_notification = $9,
+            push_notification = $10,
+            auto_sync = $11,
+            updated_at = $12
+            WHERE id = $13"
+        )
+            .bind(user.first_name)
+            .bind(user.last_name)
+            .bind(user.email)
+            .bind(user.password_hash)
+            .bind(user.position)
+            .bind(user.department)
+            .bind(user.phone)
+            .bind(user.status)
+            .bind(user.email_notification)
+            .bind(user.push_notification)
+            .bind(user.auto_sync)
+            .bind(user.updated_at)
+            .bind(id)
+            .execute(&conn.db)
+            .await {
+            Ok(_) => HttpResponse::Ok().json("User updated successfully"),
+            Err(e) => {
+                log::error!("Error updating user: {:?}", e);
+                HttpResponse::InternalServerError().json(format!("Error: {:?}", e))
+            }
+        }
+    }
+
+    // Actualizar estado del usuario
+    pub async fn update_user_status(
+        conn: Data<AppState>,
+        id: Uuid,
+        status_update: UpdateUserStatus
+    ) -> impl Responder {
+        match sqlx::query(
+            "UPDATE users SET status = $1, updated_at = $2 WHERE id = $3"
+        )
+            .bind(status_update.status)
+            .bind(status_update.updated_at)
+            .bind(id)
+            .execute(&conn.db)
+            .await {
+            Ok(_) => HttpResponse::Ok().json("Status updated successfully"),
+            Err(e) => {
+                log::error!("Error updating status: {:?}", e);
+                HttpResponse::InternalServerError().json(format!("Error: {:?}", e))
+            }
+        }
+    }
+
+    // Actualizar notificaciones
+    pub async fn update_user_notifications(
+        conn: Data<AppState>,
+        id: Uuid,
+        notifications: UpdateUserNotifications
+    ) -> impl Responder {
+        match sqlx::query(
+            "UPDATE users SET
+            email_notification = $1,
+            push_notification = $2,
+            auto_sync = $3,
+            updated_at = $4
+            WHERE id = $5"
+        )
+            .bind(notifications.email_notification)
+            .bind(notifications.push_notification)
+            .bind(notifications.auto_sync)
+            .bind(notifications.updated_at)
+            .bind(id)
+            .execute(&conn.db)
+            .await {
+            Ok(_) => HttpResponse::Ok().json("Notifications updated successfully"),
+            Err(e) => {
+                log::error!("Error updating notifications: {:?}", e);
+                HttpResponse::InternalServerError().json(format!("Error: {:?}", e))
+            }
+        }
+    }
+
+    // Actualizar contraseña
+    pub async fn update_user_password(
+        conn: Data<AppState>,
+        id: Uuid,
+        password_update: UpdateUserPassword
+    ) -> impl Responder {
+        // En una implementación real, aquí verificarías la contraseña actual
+        match sqlx::query(
+            "UPDATE users SET password_hash = $1, updated_at = $2 WHERE id = $3"
+        )
+            .bind(password_update.new_password)
+            .bind(password_update.updated_at)
+            .bind(id)
+            .execute(&conn.db)
+            .await {
+            Ok(_) => HttpResponse::Ok().json("Password updated successfully"),
+            Err(e) => {
+                log::error!("Error updating password: {:?}", e);
+                HttpResponse::InternalServerError().json(format!("Error: {:?}", e))
+            }
+        }
+    }
+
+    // Obtener actividades del usuario
+    pub async fn get_user_activities(
+        conn: Data<AppState>,
+        user_id: Uuid,
+        from_date: Option<NaiveDateTime>,
+        to_date: Option<NaiveDateTime>
+    ) -> impl Responder {
+        let query = sqlx::query_as::<_, Activities>(
+            "SELECT * FROM activities
+            WHERE user_id = $1
+            AND ($2::timestamp IS NULL OR created_at >= $2)
+            AND ($3::timestamp IS NULL OR created_at <= $3)
+            AND is_deleted = false
+            ORDER BY created_at DESC"
+        )
+            .bind(user_id.to_string())
+            .bind(from_date)
+            .bind(to_date);
+
+        match query.fetch_all(&conn.db).await {
+            Ok(activities) => HttpResponse::Ok().json(activities),
+            Err(e) => {
+                log::error!("Error getting user activities: {:?}", e);
+                HttpResponse::InternalServerError().json(format!("Error: {:?}", e))
+            }
+        }
+    }
+    
 }

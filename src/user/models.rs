@@ -55,28 +55,41 @@ pub struct UpdateUser {
     pub updated_at: Option<NaiveDateTime>,
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct Activities {
-    pub id: Uuid,
-    pub title: String,
-    pub description: String,
-    pub status: String,
-    pub risk_level: String,
-    pub location_lat: Option<f64>,
-    pub location_lng: Option<f64>,
-    pub user_id: String,
-    pub start_date: Option<NaiveDateTime>,
-    pub end_date: Option<NaiveDateTime>,
-    pub created_at: Option<NaiveDateTime>,
-    pub updated_at: Option<NaiveDateTime>,
-    pub is_synchronized: bool,
-    pub hashtag: Option<String>,
-    pub is_deleted: Option<bool>,
+#[derive(Deserialize)]
+pub struct UserFilters {
+    pub department: Option<String>,
+    pub position: Option<String>,
+    pub status: Option<String>,
+    pub created_from: Option<NaiveDateTime>,
+    pub created_to: Option<NaiveDateTime>,
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct PhotoActivity{
-    pub id: String,
-    pub activity_id: String,
-    pub url: String,
+#[derive(Deserialize)]
+pub struct UpdateUserStatus {
+    pub status: String,
+    pub updated_at: Option<NaiveDateTime>,
+}
+
+#[derive(Deserialize)]
+pub struct UpdateUserNotifications {
+    pub email_notification: bool,
+    pub push_notification: bool,
+    pub auto_sync: bool,
+    pub updated_at: Option<NaiveDateTime>,
+}
+
+#[derive(Deserialize)]
+pub struct UpdateUserPassword {
+    pub current_password: String,
+    pub new_password: String,
+    pub updated_at: Option<NaiveDateTime>,
+}
+
+#[derive(Serialize)]
+pub struct UserActivitiesStats {
+    pub total_activities: i64,
+    pub pending_activities: i64,
+    pub completed_activities: i64,
+    pub high_risk_activities: i64,
+    pub latest_activity_date: Option<NaiveDateTime>,
 }

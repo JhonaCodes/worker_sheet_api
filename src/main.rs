@@ -4,6 +4,7 @@ mod env;
 mod r#static;
 mod user;
 mod model;
+mod activities;
 
 use crate::env::models::AppConfig;
 use actix_web::{App, HttpServer};

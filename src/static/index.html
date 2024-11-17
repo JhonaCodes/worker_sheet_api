@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Worker Sheet API - Digital Work Management</title>
+    <title>Worker Sheet API - Documentación MVP</title>
     <style>
         :root {
             --primary: #2563eb;
@@ -86,47 +86,6 @@
             opacity: 0.9;
         }
 
-        .button {
-            display: inline-block;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.375rem;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-
-        .button-primary {
-            background-color: var(--white);
-            color: var(--primary);
-        }
-
-        .button-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        .features {
-            max-width: 1200px;
-            margin: 4rem auto;
-            padding: 0 2rem;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-        }
-
-        .feature-card {
-            background: var(--white);
-            padding: 2rem;
-            border-radius: 0.5rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-
-        .feature-card h3 {
-            color: var(--primary);
-            margin-bottom: 1rem;
-            font-size: 1.25rem;
-        }
-
         .api-section {
             max-width: 1200px;
             margin: 4rem auto;
@@ -135,8 +94,10 @@
 
         .api-section h2 {
             color: var(--primary);
-            margin-bottom: 2rem;
-            font-size: 2rem;
+            margin: 3rem 0 1rem;
+            font-size: 1.75rem;
+            border-bottom: 2px solid var(--gray-light);
+            padding-bottom: 0.5rem;
         }
 
         .endpoint {
@@ -160,10 +121,16 @@
         .post { background: #dcfce7; color: #166534; }
         .put { background: #fef3c7; color: #92400e; }
         .delete { background: #fee2e2; color: #991b1b; }
+        .patch { background: #fae8ff; color: #86198f; }
 
         .endpoint-path {
             font-family: monospace;
             font-size: 1rem;
+        }
+
+        .endpoint-description {
+            margin-top: 0.5rem;
+            color: var(--secondary);
         }
 
         footer {
@@ -175,13 +142,8 @@
         }
 
         @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 2rem;
-            }
-
-            .nav-links {
-                display: none;
-            }
+            .hero h1 { font-size: 2rem; }
+            .nav-links { display: none; }
         }
     </style>
 </head>
@@ -190,71 +152,125 @@
     <div class="navbar-content">
         <a href="#" class="logo">Worker Sheet API</a>
         <div class="nav-links">
-            <a href="#features">Características</a>
-            <a href="#api">API</a>
-            <a href="#docs">Documentación</a>
+            <a href="#auth">Autenticación</a>
+            <a href="#users">Usuarios</a>
+            <a href="#activities">Bitácoras</a>
         </div>
     </div>
 </nav>
 
 <header class="hero">
     <h1>Worker Sheet API</h1>
-    <p>Sistema de gestión digital para control y registro de actividades laborales con soporte offline</p>
-    <a href="#api" class="button button-primary">Ver Documentación API</a>
+    <p>Sistema de gestión digital para control y registro de actividades laborales</p>
 </header>
 
-<section id="features" class="features">
-    <div class="feature-card">
-        <h3>Gestión de Usuarios</h3>
-        <p>Sistema completo de autenticación y gestión de perfiles de usuario con roles y permisos.</p>
-    </div>
-    <div class="feature-card">
-        <h3>Control de Actividades</h3>
-        <p>Registro detallado de actividades con soporte para geolocalización y evidencia fotográfica.</p>
-    </div>
-    <div class="feature-card">
-        <h3>Sincronización Offline</h3>
-        <p>Capacidad de trabajo sin conexión con sincronización automática cuando hay conectividad.</p>
-    </div>
-</section>
-
 <section id="api" class="api-section">
-    <h2>Endpoints Disponibles</h2>
-
-    <div class="endpoint">
-        <span class="endpoint-method get">GET</span>
-        <span class="endpoint-path">/api/health</span>
-        <p>Verificar el estado del servicio</p>
-    </div>
+    <h2 id="auth">🔐 Autenticación</h2>
 
     <div class="endpoint">
         <span class="endpoint-method post">POST</span>
-        <span class="endpoint-path">/api/auth/login</span>
-        <p>Autenticación de usuarios</p>
+        <span class="endpoint-path">/auth/login</span>
+        <p class="endpoint-description">Iniciar sesión de usuario</p>
+    </div>
+
+    <h2 id="users">👥 Gestión de Usuarios</h2>
+
+    <div class="endpoint">
+        <span class="endpoint-method post">POST</span>
+        <span class="endpoint-path">/user</span>
+        <p class="endpoint-description">Crear nuevo usuario</p>
     </div>
 
     <div class="endpoint">
         <span class="endpoint-method get">GET</span>
-        <span class="endpoint-path">/api/activities</span>
-        <p>Obtener lista de actividades</p>
+        <span class="endpoint-path">/user/{id}</span>
+        <p class="endpoint-description">Obtener información de un usuario</p>
     </div>
 
     <div class="endpoint">
-        <span class="endpoint-method post">POST</span>
-        <span class="endpoint-path">/api/activities</span>
-        <p>Crear nueva actividad</p>
+        <span class="endpoint-method get">GET</span>
+        <span class="endpoint-path">/users</span>
+        <p class="endpoint-description">Listar usuarios con paginación y filtros</p>
     </div>
 
     <div class="endpoint">
         <span class="endpoint-method put">PUT</span>
-        <span class="endpoint-path">/api/activities/:id</span>
-        <p>Actualizar actividad existente</p>
+        <span class="endpoint-path">/user/{id}</span>
+        <p class="endpoint-description">Actualizar información de usuario</p>
+    </div>
+
+    <div class="endpoint">
+        <span class="endpoint-method patch">PATCH</span>
+        <span class="endpoint-path">/user/{id}/status</span>
+        <p class="endpoint-description">Actualizar estado del usuario</p>
+    </div>
+
+    <div class="endpoint">
+        <span class="endpoint-method get">GET</span>
+        <span class="endpoint-path">/user/{id}/activities</span>
+        <p class="endpoint-description">Obtener bitácoras del usuario</p>
+    </div>
+
+    <h2 id="activities">📝 Gestión de Bitácoras</h2>
+
+    <div class="endpoint">
+        <span class="endpoint-method post">POST</span>
+        <span class="endpoint-path">/activities</span>
+        <p class="endpoint-description">Crear nueva bitácora</p>
+    </div>
+
+    <div class="endpoint">
+        <span class="endpoint-method get">GET</span>
+        <span class="endpoint-path">/activities/{id}</span>
+        <p class="endpoint-description">Obtener detalle de bitácora</p>
+    </div>
+
+    <div class="endpoint">
+        <span class="endpoint-method get">GET</span>
+        <span class="endpoint-path">/activities</span>
+        <p class="endpoint-description">Listar bitácoras con filtros y paginación</p>
+    </div>
+
+    <div class="endpoint">
+        <span class="endpoint-method put">PUT</span>
+        <span class="endpoint-path">/activities/{id}</span>
+        <p class="endpoint-description">Actualizar bitácora</p>
+    </div>
+
+    <div class="endpoint">
+        <span class="endpoint-method patch">PATCH</span>
+        <span class="endpoint-path">/activities/{id}/status</span>
+        <p class="endpoint-description">Actualizar estado de bitácora</p>
     </div>
 
     <div class="endpoint">
         <span class="endpoint-method delete">DELETE</span>
-        <span class="endpoint-path">/api/activities/:id</span>
-        <p>Eliminar actividad</p>
+        <span class="endpoint-path">/activities/{id}</span>
+        <p class="endpoint-description">Eliminar bitácora (soft delete)</p>
+    </div>
+
+    <div class="endpoint">
+        <span class="endpoint-method post">POST</span>
+        <span class="endpoint-path">/activities/{id}/photos</span>
+        <p class="endpoint-description">Agregar fotos a la bitácora</p>
+    </div>
+
+    <div class="endpoint">
+        <span class="endpoint-method get">GET</span>
+        <span class="endpoint-path">/activities/{id}/photos</span>
+        <p class="endpoint-description">Obtener fotos de la bitácora</p>
+    </div>
+
+    <div class="endpoint">
+        <span class="endpoint-method delete">DELETE</span>
+        <span class="endpoint-path">/activities/{id}/photos/{photoId}</span>
+        <p class="endpoint-description">Eliminar foto de la bitácora</p>
+    </div>
+
+    <div class="endpoint">
+        <span class="endpoint-method post">POST</span>
+        <span class="endpoint-path">/activities/sync</span>
+        <p class="endpoint-description">Sincronizar bitácoras offline</p>
     </div>
 </section>
 
@@ -263,7 +279,7 @@
 </footer>
 
 <script>
-    // Smooth scroll para los enlaces de navegación
+    // Smooth scroll
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
             e.preventDefault();
@@ -273,25 +289,22 @@
         });
     });
 
-    // Animación de la barra de navegación al hacer scroll
+    // Navbar animation
     let navbar = document.querySelector('.navbar');
     let lastScroll = 0;
 
     window.addEventListener('scroll', () => {
         const currentScroll = window.pageYOffset;
-
         if (currentScroll <= 0) {
             navbar.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
             return;
         }
-
         if (currentScroll > lastScroll) {
             navbar.style.transform = 'translateY(-100%)';
         } else {
             navbar.style.transform = 'translateY(0)';
             navbar.style.boxShadow = '0 1px 3px rgba(0,0,0,0.2)';
         }
-
         lastScroll = currentScroll;
     });
 </script>
