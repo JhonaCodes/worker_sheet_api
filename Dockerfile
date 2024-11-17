@@ -1,39 +1,47 @@
-# Dockerfile con multi-stage build para optimizar el tamaño y la seguridad
-FROM rust:1.75-slim-bullseye as builder
+# Usar imagen oficial de Rust
+FROM rust:1.82.0 as builder
+
+WORKDIR /app
 
 # Instalar dependencias necesarias para la compilación
 RUN apt-get update && \
-    apt-get install -y pkg-config libssl-dev && \
-    rm -rf /var/lib/apt/lists/*
-
-# Crear un directorio nuevo para nuestro código
-WORKDIR /usr/src/app
-
-# Copiar los archivos del proyecto
-COPY . .
-
-# Compilar la aplicación en modo release
-RUN cargo build --release
-
-# Usar la misma imagen base para la etapa final
-FROM debian:bullseye-slim
-
-# Instalar dependencias necesarias
-RUN apt-get update && \
     apt-get install -y \
-    libssl1.1 \
-    libpq5 \
-    ca-certificates \
+    curl \
+    libpq-dev \
+    pkg-config \
+    postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
-# Copiar el binario compilado desde el builder
-COPY --from=builder /usr/src/app/target/release/worker_sheet_api /usr/local/bin/worker_sheet_api
+# Instalar rustup para manejar las versiones de Rust
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 
-# Variables de entorno para la base de datos
-ENV DATABASE_URL=postgres://postgres:postgres@postgres-db:5434/midb
+# Copiar los archivos del proyecto
+COPY sql /docker-entrypoint-initdb.d/
+COPY src ./src
+COPY Cargo.toml Cargo.lock ./
 
-# Puerto en el que correrá la aplicación
-EXPOSE 3000
+# Ejecutar la compilación
+RUN cargo build --release
 
-# Comando para ejecutar la aplicación
-CMD ["/usr/local/bin/worker_sheet_api"]
+# Usar una imagen base más ligera para el contenedor final
+FROM debian:bookworm-slim
+
+# Instalar dependencias necesarias
+RUN apt-get update && apt-get install -y \
+    libssl-dev \
+    libpq5 \
+    ca-certificates \
+    postgresql-client && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copiar la aplicación compilada y los scripts SQL desde la imagen builder
+COPY --from=builder /app/target/release/worker_sheet_api /usr/local/bin/worker_sheet_api
+COPY sql /docker-entrypoint-initdb.d/
+COPY scripts/start.sh /start.sh
+RUN chmod +x /start.sh
+
+# Exponer el puerto del servidor
+EXPOSE ${SERVER_PORT}
+
+# Iniciar la aplicación con el script start.sh
+CMD ["/start.sh"]
