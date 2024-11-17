@@ -13,11 +13,12 @@ use dotenvy::dotenv;
 use std::io::Result;
 use actix_web::web::Data;
 use sqlx::postgres::PgPoolOptions;
+use crate::activities::service::{add_photo, create_activity, delete_activity, delete_photo, get_activity, get_photos, list_activities, update_activity, update_activity_status};
 use crate::auth::service::user_data;
 use crate::db::url_database;
 use crate::model::AppState;
 use crate::r#static::service::index_page;
-use crate::user::service::{create_user, get_users};
+use crate::user::service::{create_user, get_users, update_user, update_user_notifications, update_user_password, update_user_status};
 
 #[actix_web::main]
 async fn main() -> Result<()> {
@@ -54,6 +55,19 @@ async fn main() -> Result<()> {
             .service(user_data)
             .service(create_user)
             .service(get_users)
+            .service(update_user)
+            .service(update_user_status)
+            .service(update_user_notifications)
+            .service(update_user_password)
+            .service(create_activity)
+            .service(get_activity)
+            .service(delete_activity)
+            .service(list_activities)
+            .service(update_activity)
+            .service(update_activity_status)
+            .service(add_photo)
+            .service(get_photos)
+            .service(delete_photo)
     });
 
     println!(
