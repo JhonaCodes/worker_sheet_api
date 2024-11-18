@@ -2,6 +2,7 @@ use actix_web::Responder;
 use actix_web::web::{Data, Json};
 use argonautica::Verifier;
 use jwt::SignWithKey;
+use serde_json::json;
 use crate::auth::env::{date_time_epoc, hash_secret, jwt_key};
 use crate::auth::models::{JwtUserInfo, LoginProfileModel, ResponseProfileModel};
 use crate::helper::response::{susses_json, un_susses};
@@ -30,15 +31,27 @@ impl AuthRepository {
                 if is_valid {
 
                     let claims = JwtUserInfo::from_auth_user_model(&user, date_time_epoc(15));
-
-                    let user_data_json = serde_json::to_string(&user).expect("Error profile data json");
-
-                    let user_local: JwtUserInfo = serde_json::from_str(&user_data_json).expect("Error profile data");
+                    
+                    
+                    let user_compose_json = json!({
+                        "id":user.id,
+                        "first_name":user.first_name,
+                        "last_name":user.last_name,
+                        "email":user.email,
+                        "status":user.status,
+                        "expire_at":  claims.expire_at,
+                        "created_at":user.created_at,
+                        });
+                    
+                    
+                    let user_local: JwtUserInfo = serde_json::from_str(&user_compose_json.to_string()).expect("Error profile data");
+                    
+                    
                     let token_str = claims.sign_with_key(&jwt_key()).unwrap();
 
                     let response_user = ResponseProfileModel{
                         jwt: token_str,
-                        user: user_local
+                        user: user_local,
                     };
 
                     susses_json(response_user )

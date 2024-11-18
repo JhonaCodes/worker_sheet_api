@@ -35,3 +35,6 @@ argonautica = "0.2.0"
 hmac = "0.12.1"
 actix-web-httpauth = "0.8.1"
 actix-cors = "0.7.0"
+
+# Msm
+lettre = "0.11.10"

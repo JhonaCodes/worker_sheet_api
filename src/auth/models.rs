@@ -40,5 +40,5 @@ pub struct LoginProfileModel {
 #[derive(Serialize)]
 pub struct ResponseProfileModel {
     pub jwt: String,
-    pub user: JwtUserInfo,
+    pub user: JwtUserInfo
 }

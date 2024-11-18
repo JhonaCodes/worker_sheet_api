@@ -1,11 +1,13 @@
+use std::error::Error;
 use actix_web::{HttpResponse, Responder};
 use actix_web::web::{Data, Json};
 use argonautica::Hasher;
-use chrono::NaiveDateTime;
+use chrono::{NaiveDateTime, Utc};
 
 use uuid::Uuid;
 use crate::activities::models::Activities;
 use crate::auth::env::hash_secret;
+use crate::helper::response::send_email;
 use crate::model::AppState;
 use super::models::{UserModel, UpdateUser, UpdateUserNotifications, UpdateUserPassword, UpdateUserStatus, UserFilters, Users};
 
@@ -29,7 +31,7 @@ impl UserRepository {
             .bind(new_user.id)
             .bind(new_user.first_name)
             .bind(new_user.last_name)
-            .bind(new_user.email)
+            .bind(new_user.email.clone())
             .bind(hash)
             .bind(new_user.position)
             .bind(new_user.department)
@@ -38,12 +40,24 @@ impl UserRepository {
             .bind(new_user.email_notification)
             .bind(new_user.push_notification)
             .bind(new_user.auto_sync)
-            .bind(new_user.created_at)
-            .bind(new_user.updated_at)
+            .bind(Utc::now())
+            .bind(Utc::now())
             .execute(&conn.db)
             .await
         {
-            Ok(_) => HttpResponse::Created().json("User created successfully"), 
+            Ok(_) =>{
+
+                match send_email(&new_user.email) {
+                    Ok(_) => {
+                        HttpResponse::Created().json("User created successfully")
+                    }
+                    Err(e) => {
+                        HttpResponse::InternalServerError().json(format!("Error: {:?}", e))
+                    }
+                }
+            
+                
+            }, 
             Err(e) => {
                 log::error!("Error creating user: {:?}", e); 
                 HttpResponse::InternalServerError().json(format!("Error: {:?}", e))

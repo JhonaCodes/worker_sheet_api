@@ -65,9 +65,12 @@ async fn main() -> Result<()> {
             )
             .wrap(actix_web::middleware::Logger::default())
             .service(index_page)
+            .service(web::scope("/register").service(create_user))
+            .service(web::scope("/auth")
+                         .service(jwt_profile_validate)
+                         .service(basic_auth),
+            )
             .service(web::scope("/v1")
-                .service(web::scope("/register").service(create_user))
-                .service(web::scope("/auth").service(basic_auth))
                 .wrap(jwt_bearer_middleware.clone())
                 .service(get_users)
                 .service(update_user)
@@ -83,7 +86,6 @@ async fn main() -> Result<()> {
                 .service(add_photo)
                 .service(get_photos)
                 .service(delete_photo)
-                .service(jwt_profile_validate)
             )
             
 

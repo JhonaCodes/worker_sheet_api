@@ -4,7 +4,7 @@ use crate::auth::models::LoginProfileModel;
 use crate::auth::repository::AuthRepository;
 use crate::model::AppState;
 
-#[post("/auth")]
+#[post("/login")]
 async fn basic_auth(state: Data<AppState>, credentials: Json<LoginProfileModel>) -> impl Responder {
     return AuthRepository::basic_auth(state, credentials).await;
 }
