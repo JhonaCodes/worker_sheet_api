@@ -1,4 +1,4 @@
-use super::models::{NewUser, UpdateUser, UpdateUserNotifications, UpdateUserPassword, UpdateUserStatus, UserFilters};
+use super::models::{UserModel, UpdateUser, UpdateUserNotifications, UpdateUserPassword, UpdateUserStatus, UserFilters};
 use actix_web::{get, patch, post, put, web, Responder};
 use actix_web::web::{Path, Query};
 
@@ -12,8 +12,8 @@ use crate::user::repository::UserRepository;
 
 
 #[post("/user")]
-pub async fn create_user(conn: Data<AppState>, new_user: Json<NewUser>) -> impl Responder {
-    UserRepository::create_user(conn, new_user.into_inner()).await
+pub async fn create_user(conn: Data<AppState>, body: Json<UserModel>) -> impl Responder {
+    UserRepository::create_user(conn, body).await
 }
 #[get("/user/{user_id}")]
 pub async fn get_users(conn: Data<AppState>, id: Path<Uuid>) -> impl Responder {

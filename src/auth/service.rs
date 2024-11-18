@@ -1,15 +1,16 @@
-use actix_web::{get, web::Json};
+use actix_web::{get, post, web::Json, Responder};
+use actix_web::web::Data;
+use crate::auth::models::LoginProfileModel;
+use crate::auth::repository::AuthRepository;
+use crate::model::AppState;
 
-use crate::auth::models::UserInfo;
-use uuid::Uuid;
+#[post("/auth")]
+async fn basic_auth(state: Data<AppState>, credentials: Json<LoginProfileModel>) -> impl Responder {
+    return AuthRepository::basic_auth(state, credentials).await;
+}
 
-#[get("/user-test")]
-pub async fn user_data() -> Result<Json<UserInfo>, actix_web::Error> {
-    let user = UserInfo {
-        id: Uuid::new_v4(),
-        name: String::from("John Doe"),
-        email: String::from("john@example.com"),
-    };
 
-    Ok(Json(user))
+#[post("/jwt_validate")]
+async fn jwt_profile_validate() -> impl Responder{
+    return AuthRepository::check_jwt().await;
 }

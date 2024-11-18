@@ -5,16 +5,20 @@ mod r#static;
 mod user;
 mod model;
 mod activities;
+mod helper;
 
 use crate::env::models::AppConfig;
-use actix_web::{App, HttpServer};
+use actix_web::{web, App, HttpServer};
 use dotenvy::dotenv;
 
 use std::io::Result;
+use actix_cors::Cors;
 use actix_web::web::Data;
+use actix_web_httpauth::middleware::HttpAuthentication;
 use sqlx::postgres::PgPoolOptions;
 use crate::activities::service::{add_photo, create_activity, delete_activity, delete_photo, get_activity, get_photos, list_activities, update_activity, update_activity_status};
-use crate::auth::service::user_data;
+use crate::auth::env::validate_jwt;
+use crate::auth::service::{basic_auth, jwt_profile_validate};
 use crate::db::url_database;
 use crate::model::AppState;
 use crate::r#static::service::index_page;
@@ -36,6 +40,9 @@ async fn main() -> Result<()> {
         .expect("Error building a connection pool");
 
 
+    let jwt_bearer_middleware = HttpAuthentication::bearer(validate_jwt);
+
+    
     // Rules for initialize app state.
     let app_state = Data::new(AppState { db: pool.clone() });
     
@@ -50,24 +57,36 @@ async fn main() -> Result<()> {
     let server = HttpServer::new(move || {
         App::new()
             .app_data(app_state.clone())
+            .wrap(
+                Cors::default()
+                    .allow_any_origin()// Todo: We need improve cors
+                    .allow_any_method()// Todo: We need restricted methods
+                    .allow_any_header()// Todo: We need to restricted header
+            )
             .wrap(actix_web::middleware::Logger::default())
             .service(index_page)
-            .service(user_data)
-            .service(create_user)
-            .service(get_users)
-            .service(update_user)
-            .service(update_user_status)
-            .service(update_user_notifications)
-            .service(update_user_password)
-            .service(create_activity)
-            .service(get_activity)
-            .service(delete_activity)
-            .service(list_activities)
-            .service(update_activity)
-            .service(update_activity_status)
-            .service(add_photo)
-            .service(get_photos)
-            .service(delete_photo)
+            .service(web::scope("/v1")
+                .service(web::scope("/register").service(create_user))
+                .service(web::scope("/auth").service(basic_auth))
+                .wrap(jwt_bearer_middleware.clone())
+                .service(get_users)
+                .service(update_user)
+                .service(update_user_status)
+                .service(update_user_notifications)
+                .service(update_user_password)
+                .service(create_activity)
+                .service(get_activity)
+                .service(delete_activity)
+                .service(list_activities)
+                .service(update_activity)
+                .service(update_activity_status)
+                .service(add_photo)
+                .service(get_photos)
+                .service(delete_photo)
+                .service(jwt_profile_validate)
+            )
+            
+
     });
 
     println!(

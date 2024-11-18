@@ -20,8 +20,8 @@ pub struct Users {
     pub updated_at: Option<NaiveDateTime>,
 }
 
-#[derive( Deserialize, Serialize, FromRow)]
-pub struct NewUser {
+#[derive(Deserialize, FromRow, Serialize)]
+pub struct UserModel {
     pub id: Uuid,
     pub first_name: String,
     pub last_name: String,

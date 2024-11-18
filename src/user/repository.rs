@@ -1,16 +1,28 @@
 use actix_web::{HttpResponse, Responder};
-use actix_web::web::Data;
+use actix_web::web::{Data, Json};
+use argonautica::Hasher;
 use chrono::NaiveDateTime;
+
 use uuid::Uuid;
 use crate::activities::models::Activities;
+use crate::auth::env::hash_secret;
 use crate::model::AppState;
-use super::models::{NewUser, UpdateUser, UpdateUserNotifications, UpdateUserPassword, UpdateUserStatus, UserFilters, Users};
+use super::models::{UserModel, UpdateUser, UpdateUserNotifications, UpdateUserPassword, UpdateUserStatus, UserFilters, Users};
 
 pub struct UserRepository;
 
 impl UserRepository {
-    pub  async fn create_user(conn: Data<AppState>, new_user: NewUser) -> impl Responder {
-        
+    pub  async fn create_user(conn: Data<AppState>, body: Json<UserModel>) -> impl Responder {
+
+        let new_user: UserModel = body.into_inner();
+
+        let hash = Hasher::default()
+            .with_password(new_user.password_hash)
+            .with_secret_key(hash_secret())
+            .hash()
+            .unwrap();
+
+
         match sqlx::query(
         "INSERT INTO users (id, first_name, last_name, email, password_hash, position, department, phone, status, email_notification, push_notification, auto_sync, created_at, updated_at) 
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)")
@@ -18,7 +30,7 @@ impl UserRepository {
             .bind(new_user.first_name)
             .bind(new_user.last_name)
             .bind(new_user.email)
-            .bind(new_user.password_hash)
+            .bind(hash)
             .bind(new_user.position)
             .bind(new_user.department)
             .bind(new_user.phone)
