@@ -59,11 +59,22 @@ services:
     environment:
       - DATABASE_URL=postgres://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}
       - RUST_LOG=debug
+      - JWT_SECRET=${JWT_SECRET}
+      - HASH_SECRET=${HASH_SECRET}
     healthcheck:
-      test: [ "CMD", "curl", "-f", "https://${DATABASE_HOST}:${SERVER_PORT}/" ]
+      test: ["CMD", "curl", "-f", "http://localhost:${SERVER_PORT}/health"]
       interval: 30s
       timeout: 10s
       retries: 3
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     restart: unless-stopped
     depends_on:
       db:

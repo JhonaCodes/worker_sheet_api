@@ -1,0 +1,27 @@
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+          - usernamePassword:
+              scope: GLOBAL
+              id: "docker-registry"
+              username: "${DOCKER_USERNAME}"
+              password: "${DOCKER_PASSWORD}"
+          - string:
+              scope: GLOBAL
+              id: "database-url"
+              secret: "${DATABASE_URL}"
+          - string:
+              scope: GLOBAL
+              id: "jwt-secret"
+              secret: "${JWT_SECRET}"
+
+tool:
+  rust:
+    installations:
+      - name: "rust-stable"
+        properties:
+          - installSource:
+              installers:
+                - rustInstaller:
+                    id: "stable"

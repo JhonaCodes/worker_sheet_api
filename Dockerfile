@@ -15,6 +15,13 @@ RUN apt-get update && \
 # Instalar rustup para manejar las versiones de Rust
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 
+# Instalar clang y dependencias necesarias
+RUN apt-get update && apt-get install -y \
+    clang \
+    llvm-dev \
+    libclang-dev \
+    libargon2-dev
+
 # Copiar los archivos del proyecto
 COPY sql /docker-entrypoint-initdb.d/
 COPY src ./src
