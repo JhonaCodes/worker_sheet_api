@@ -39,6 +39,7 @@ impl AuthRepository {
                         "last_name":user.last_name,
                         "email":user.email,
                         "status":user.status,
+                        "hash_sync": user.hash_sync,
                         "expire_at":  claims.expire_at,
                         "created_at":user.created_at,
                         });

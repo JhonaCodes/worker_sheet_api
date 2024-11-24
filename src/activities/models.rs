@@ -17,8 +17,7 @@ pub struct Activities {
     pub end_date: Option<NaiveDateTime>,
     pub created_at: Option<NaiveDateTime>,
     pub updated_at: Option<NaiveDateTime>,
-    pub is_synchronized: bool,
-    pub hashtag: Option<String>,
+    pub hash_sync: Option<String>,
     pub is_deleted: Option<bool>,
 }
 
@@ -39,8 +38,7 @@ pub struct ActivityFilter {
     pub start_date: Option<NaiveDateTime>,
     pub end_date: Option<NaiveDateTime>,
     pub user_id: Option<String>,
-    pub is_synchronized: Option<bool>,
-    pub hashtag: Option<String>,
+    pub hash_sync: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, FromRow)]
@@ -52,5 +50,5 @@ pub struct NewPhoto {
 #[derive(Serialize, Deserialize, FromRow)]
 pub struct UpdateActivityStatus {
     pub status: String,
-    pub updated_at: Option<NaiveDateTime>,
+    pub hash_sync: Option<String>,
 }

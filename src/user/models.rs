@@ -17,7 +17,7 @@ pub struct Users {
     pub push_notification: Option<bool>,
     pub auto_sync: Option<bool>,
     pub created_at: Option<NaiveDateTime>,
-    pub updated_at: Option<NaiveDateTime>,
+    pub hash_sync: Option<String>,
 }
 
 #[derive(Deserialize, FromRow, Serialize)]
@@ -35,7 +35,7 @@ pub struct UserModel {
     pub push_notification:bool,
     pub auto_sync: bool,
     pub created_at: Option<NaiveDateTime>,
-    pub updated_at: Option<NaiveDateTime>
+    pub hash_sync: Option<String>
 }
 
 
@@ -52,7 +52,7 @@ pub struct UpdateUser {
     pub email_notification:bool,
     pub push_notification:bool,
     pub auto_sync: bool,
-    pub updated_at: Option<NaiveDateTime>,
+    pub hash_sync: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -75,14 +75,14 @@ pub struct UpdateUserNotifications {
     pub email_notification: bool,
     pub push_notification: bool,
     pub auto_sync: bool,
-    pub updated_at: Option<NaiveDateTime>,
+    pub hash_sync: Option<String>,
 }
 
 #[derive(Deserialize)]
 pub struct UpdateUserPassword {
     pub current_password: String,
     pub new_password: String,
-    pub updated_at: Option<NaiveDateTime>,
+    pub hash_sync: Option<String>,
 }
 
 #[derive(Serialize)]

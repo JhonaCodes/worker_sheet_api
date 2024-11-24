@@ -11,8 +11,7 @@ create table if not exists activities (
     end_date timestamp,
     created_at timestamp,
     updated_at timestamp,
-    is_synchronized boolean not null,
-    hashtag text,
+    hash_sync text,
     is_deleted boolean
 );
 

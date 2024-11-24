@@ -66,7 +66,7 @@ pub fn date_time_epoc(days: i64) -> i64{
     };
 
     // Devolver la marca de tiempo (timestamp) de la fecha de expiración
-    expiration.timestamp()
+    return expiration.timestamp_millis();
 }
 
 /// Api key for companies process

@@ -18,7 +18,7 @@ use actix_web_httpauth::middleware::HttpAuthentication;
 use sqlx::postgres::PgPoolOptions;
 use crate::activities::service::{add_photo, create_activity, delete_activity, delete_photo, get_activity, get_photos, list_activities, update_activity, update_activity_status};
 use crate::auth::env::validate_jwt;
-use crate::auth::service::{basic_auth, jwt_profile_validate};
+use crate::auth::service::{basic_auth, jwt_profile_validate, refresh_token};
 use crate::db::url_database;
 use crate::model::AppState;
 use crate::r#static::service::index_page;
@@ -68,6 +68,7 @@ async fn main() -> Result<()> {
             .service(web::scope("/register").service(create_user))
             .service(web::scope("/auth")
                          .service(jwt_profile_validate)
+                         .service(refresh_token)
                          .service(basic_auth),
             )
             .service(web::scope("/v1")

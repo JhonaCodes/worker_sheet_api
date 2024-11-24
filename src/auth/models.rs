@@ -11,6 +11,7 @@ pub struct JwtUserInfo {
     pub last_name: String,
     pub email: String,
     pub status: String,
+    pub hash_sync: String,
     pub expire_at: i64,
     pub created_at: Option<NaiveDateTime>
 }
@@ -25,6 +26,7 @@ impl JwtUserInfo {
             last_name: user.last_name.clone(),
             email: user.email.clone(),
             status: user.status.clone(),
+            hash_sync: user.hash_sync.clone().unwrap(),
             expire_at: expire,
             created_at: None,
         };

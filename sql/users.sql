@@ -12,6 +12,6 @@ create table if not exists users (
     push_notification boolean,
     auto_sync boolean,
     created_at timestamp,
-    updated_at timestamp
+    hash_sync text
 );
 

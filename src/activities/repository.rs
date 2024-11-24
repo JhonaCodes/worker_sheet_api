@@ -11,8 +11,8 @@ impl ActivityRepository {
         match sqlx::query(
             "INSERT INTO activities
             (id, title, description, status, risk_level, location_lat, location_lng,
-             user_id, start_date, end_date, created_at, updated_at, is_synchronized, hashtag, is_deleted)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)"
+             user_id, start_date, end_date, created_at, updated_at, hash_sync, is_deleted)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)"
         )
             .bind(new_activity.id)
             .bind(new_activity.title)
@@ -26,8 +26,7 @@ impl ActivityRepository {
             .bind(new_activity.end_date)
             .bind(new_activity.created_at)
             .bind(new_activity.updated_at)
-            .bind(new_activity.is_synchronized)
-            .bind(new_activity.hashtag)
+            .bind(new_activity.hash_sync)
             .bind(new_activity.is_deleted)
             .execute(&conn.db)
             .await {
@@ -62,8 +61,7 @@ impl ActivityRepository {
             AND ($3::timestamp IS NULL OR start_date >= $3)
             AND ($4::timestamp IS NULL OR end_date <= $4)
             AND ($5::text IS NULL OR user_id = $5)
-            AND ($6::boolean IS NULL OR is_synchronized = $6)
-            AND ($7::text IS NULL OR hashtag = $7)
+            AND ($7::text IS NULL OR hash_sync = $6)
             AND is_deleted = false
             ORDER BY created_at DESC"
         )
@@ -72,8 +70,7 @@ impl ActivityRepository {
             .bind(filter.start_date)
             .bind(filter.end_date)
             .bind(filter.user_id)
-            .bind(filter.is_synchronized)
-            .bind(filter.hashtag);
+            .bind(filter.hash_sync);
 
         match query.fetch_all(&conn.db).await {
             Ok(activities) => HttpResponse::Ok().json(activities),
@@ -93,8 +90,8 @@ impl ActivityRepository {
             "UPDATE activities SET
             title = $1, description = $2, status = $3, risk_level = $4,
             location_lat = $5, location_lng = $6, start_date = $7, end_date = $8,
-            updated_at = $9, is_synchronized = $10, hashtag = $11
-            WHERE id = $12 AND is_deleted = false"
+            updated_at = $9, hash_sync = $10
+            WHERE id = $11 AND is_deleted = false"
         )
             .bind(activity.title)
             .bind(activity.description)
@@ -105,8 +102,7 @@ impl ActivityRepository {
             .bind(activity.start_date)
             .bind(activity.end_date)
             .bind(activity.updated_at)
-            .bind(activity.is_synchronized)
-            .bind(activity.hashtag)
+            .bind(activity.hash_sync)
             .bind(id)
             .execute(&conn.db)
             .await {
@@ -124,10 +120,10 @@ impl ActivityRepository {
         status_update: UpdateActivityStatus
     ) -> impl Responder {
         match sqlx::query(
-            "UPDATE activities SET status = $1, updated_at = $2 WHERE id = $3 AND is_deleted = false"
+            "UPDATE activities SET status = $1, hash_sync = $2 WHERE id = $3 AND is_deleted = false"
         )
             .bind(status_update.status)
-            .bind(status_update.updated_at)
+            .bind(status_update.hash_sync)
             .bind(id)
             .execute(&conn.db)
             .await {

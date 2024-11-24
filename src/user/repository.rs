@@ -26,7 +26,7 @@ impl UserRepository {
 
 
         match sqlx::query(
-        "INSERT INTO users (id, first_name, last_name, email, password_hash, position, department, phone, status, email_notification, push_notification, auto_sync, created_at, updated_at) 
+        "INSERT INTO users (id, first_name, last_name, email, password_hash, position, department, phone, status, email_notification, push_notification, auto_sync, created_at, hash_sync) 
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)")
             .bind(new_user.id)
             .bind(new_user.first_name)
@@ -41,7 +41,7 @@ impl UserRepository {
             .bind(new_user.push_notification)
             .bind(new_user.auto_sync)
             .bind(Utc::now())
-            .bind(Utc::now())
+            .bind(Utc::now().timestamp_millis().to_string())
             .execute(&conn.db)
             .await
         {
@@ -137,7 +137,7 @@ impl UserRepository {
             .bind(user.email_notification)
             .bind(user.push_notification)
             .bind(user.auto_sync)
-            .bind(user.updated_at)
+            .bind(user.hash_sync)
             .bind(id)
             .execute(&conn.db)
             .await {
@@ -188,7 +188,7 @@ impl UserRepository {
             .bind(notifications.email_notification)
             .bind(notifications.push_notification)
             .bind(notifications.auto_sync)
-            .bind(notifications.updated_at)
+            .bind(notifications.hash_sync)
             .bind(id)
             .execute(&conn.db)
             .await {
@@ -211,7 +211,7 @@ impl UserRepository {
             "UPDATE users SET password_hash = $1, updated_at = $2 WHERE id = $3"
         )
             .bind(password_update.new_password)
-            .bind(password_update.updated_at)
+            .bind(password_update.hash_sync)
             .bind(id)
             .execute(&conn.db)
             .await {
