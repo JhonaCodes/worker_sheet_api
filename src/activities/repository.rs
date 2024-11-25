@@ -55,22 +55,8 @@ impl ActivityRepository {
 
     pub async fn list_activities(conn: Data<AppState>, filter: ActivityFilter) -> impl Responder {
         let query = sqlx::query_as::<_, Activities>(
-            "SELECT * FROM activities
-            WHERE ($1::text IS NULL OR status = $1)
-            AND ($2::text IS NULL OR risk_level = $2)
-            AND ($3::timestamp IS NULL OR start_date >= $3)
-            AND ($4::timestamp IS NULL OR end_date <= $4)
-            AND ($5::text IS NULL OR user_id = $5)
-            AND ($7::text IS NULL OR hash_sync = $6)
-            AND is_deleted = false
-            ORDER BY created_at DESC"
-        )
-            .bind(filter.status)
-            .bind(filter.risk_level)
-            .bind(filter.start_date)
-            .bind(filter.end_date)
-            .bind(filter.user_id)
-            .bind(filter.hash_sync);
+            "SELECT * FROM activities"
+        );
 
         match query.fetch_all(&conn.db).await {
             Ok(activities) => HttpResponse::Ok().json(activities),
