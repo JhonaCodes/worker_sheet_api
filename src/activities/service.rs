@@ -1,4 +1,5 @@
 use actix_web::{delete, get, patch, post, put, web::{self, Json, Path, Query}, Responder};
+use actix_web::web::Data;
 use uuid::Uuid;
 use crate::model::AppState;
 use super::{models::{Activities, ActivityFilter, NewPhoto, UpdateActivityStatus}, repository::ActivityRepository};
@@ -17,6 +18,11 @@ pub async fn get_activity(
     id: Path<Uuid>
 ) -> impl Responder {
     ActivityRepository::get_activity_by_id(conn, id.into_inner()).await
+}
+
+#[get("/activities/participant/{user_id}")]
+pub async fn get_activity_list_by_user_id(conn:Data<AppState>, user_id:Path<Uuid>) -> impl Responder {
+    return ActivityRepository::get_activity_list_by_user_id(conn, user_id.into_inner()).await;
 }
 
 #[get("/activities")]

@@ -17,12 +17,12 @@ use actix_cors::Cors;
 use actix_web::web::{service, Data};
 use actix_web_httpauth::middleware::HttpAuthentication;
 use sqlx::postgres::PgPoolOptions;
-use crate::activities::service::{add_photo, create_activity, delete_activity, delete_photo, get_activity, get_photos, list_activities, update_activity, update_activity_status};
+use crate::activities::service::{add_photo, create_activity, delete_activity, delete_photo, get_activity, get_activity_list_by_user_id, get_photos, list_activities, update_activity, update_activity_status};
 use crate::auth::env::validate_jwt;
 use crate::auth::service::{basic_auth, jwt_profile_validate, refresh_token};
 use crate::db::url_database;
 use crate::model::AppState;
-use crate::participants::service::{create_participant, get_participants};
+use crate::participants::service::{create_participant, get_activities_by_participant_id, get_participants};
 use crate::r#static::service::index_page;
 use crate::user::service::{create_user, get_users, update_user, update_user_notifications, update_user_password, update_user_status};
 
@@ -91,6 +91,8 @@ async fn main() -> Result<()> {
                 .service(delete_photo)
                 .service(create_participant)
                 .service(get_participants)
+                .service(get_activities_by_participant_id)
+                .service(get_activity_list_by_user_id)
             )
             
 

@@ -1,5 +1,6 @@
 use actix_web::{HttpResponse, Responder, web::Data};
 use uuid::Uuid;
+use crate::helper::response::{susses_json, un_susses_json};
 use crate::model::AppState;
 use super::models::{Activities, ActivityFilter, NewPhoto, PhotoActivity, UpdateActivityStatus};
 
@@ -49,6 +50,24 @@ impl ActivityRepository {
             Err(e) => {
                 log::error!("Error getting activity: {:?}", e);
                 HttpResponse::NotFound().json(format!("Activity not found: {:?}", e))
+            }
+        }
+    }
+
+
+    pub async fn get_activity_list_by_user_id(conn: Data<AppState>, user_id: Uuid) -> impl Responder {
+        match sqlx::query_as::<_, Activities>(r#"SELECT a.*
+FROM activities a
+INNER JOIN participants p ON a.id = p.activity_id
+WHERE p.user_id = $1;"#)
+        .bind(user_id)
+            .fetch_all(&conn.db)
+            .await
+        {
+            Ok(activity_list)=> susses_json(activity_list),
+            Err(err)=>{
+                println!("Error: {}", err);
+                return un_susses_json("Error al llamar actividades");
             }
         }
     }

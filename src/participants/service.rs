@@ -14,3 +14,8 @@ pub async fn create_participant(conn: Data<AppState>, body: Json<ParticipantsMod
 pub async fn get_participants(conn: Data<AppState>, id_activity: Path<Uuid>) -> impl Responder {
     return ParticipantsRepository::get_participants(conn, id_activity.into_inner()).await;
 }
+
+#[post("/activities/{user_id}")]
+pub async fn get_activities_by_participant_id(conn: Data<AppState>, user_id: Path<Uuid>) -> impl  Responder{
+    return ParticipantsRepository::get_activities_by_participant_id(conn, user_id.into_inner()).await;
+}
