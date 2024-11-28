@@ -44,14 +44,12 @@ pub struct UpdateUser {
     pub first_name: String,
     pub last_name: String,
     pub email: String,
-    pub password_hash: String,
     pub position: String,
     pub department: String,
     pub phone: String,
     pub status: String,
     pub email_notification:bool,
     pub push_notification:bool,
-    pub auto_sync: bool,
     pub hash_sync: Option<String>,
 }
 

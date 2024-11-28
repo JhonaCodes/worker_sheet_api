@@ -115,28 +115,24 @@ impl UserRepository {
             first_name = $1,
             last_name = $2,
             email = $3,
-            password_hash = $4,
-            position = $5,
-            department = $6,
-            phone = $7,
-            status = $8,
-            email_notification = $9,
-            push_notification = $10,
-            auto_sync = $11,
-            updated_at = $12
-            WHERE id = $13"
+            position = $4,
+            department = $5,
+            phone = $6,
+            status = $7,
+            email_notification = $8,
+            push_notification = $9,
+            hash_sync = $10
+            WHERE id = $11"
         )
             .bind(user.first_name)
             .bind(user.last_name)
             .bind(user.email)
-            .bind(user.password_hash)
             .bind(user.position)
             .bind(user.department)
             .bind(user.phone)
             .bind(user.status)
             .bind(user.email_notification)
             .bind(user.push_notification)
-            .bind(user.auto_sync)
             .bind(user.hash_sync)
             .bind(id)
             .execute(&conn.db)

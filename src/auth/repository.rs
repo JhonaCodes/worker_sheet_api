@@ -31,13 +31,18 @@ impl AuthRepository {
                 if is_valid {
 
                     let claims = JwtUserInfo::from_auth_user_model(&user, date_time_epoc(15));
-                    
-                    
+
+
                     let user_compose_json = json!({
                         "id":user.id,
                         "first_name":user.first_name,
                         "last_name":user.last_name,
                         "email":user.email,
+                        "position":user.position,
+                        "phone":user.phone,
+                        "department":user.department,
+                        "email_notification":user.email_notification,
+                        "push_notification":user.push_notification,
                         "status":user.status,
                         "hash_sync": user.hash_sync,
                         "expire_at":  claims.expire_at,
