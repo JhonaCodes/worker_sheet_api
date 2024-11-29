@@ -9,11 +9,11 @@ pub struct ActivityRepository;
 impl ActivityRepository {
     // CRUD Básico
     pub async fn create_activity(conn: Data<AppState>, new_activity: Activities) -> impl Responder {
-        match sqlx::query(
+        match sqlx::query_as::<_, Activities>(
             "INSERT INTO activities
             (id, title, description, status, risk_level, location_lat, location_lng,
              user_id, start_date, end_date, created_at, updated_at, hash_sync, is_deleted)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)"
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *"
         )
             .bind(new_activity.id)
             .bind(new_activity.title)
@@ -29,9 +29,9 @@ impl ActivityRepository {
             .bind(new_activity.updated_at)
             .bind(new_activity.hash_sync)
             .bind(new_activity.is_deleted)
-            .execute(&conn.db)
+            .fetch_one(&conn.db)
             .await {
-            Ok(_) => HttpResponse::Created().json("Activity created successfully"),
+            Ok(activity) => susses_json(activity),
             Err(e) => {
                 log::error!("Error creating activity: {:?}", e);
                 HttpResponse::InternalServerError().json(format!("Error: {:?}", e))
@@ -39,12 +39,12 @@ impl ActivityRepository {
         }
     }
 
-    pub async fn get_activity_by_id(conn: Data<AppState>, activity_id: Uuid) -> impl Responder {
+    pub async fn get_activity_by_user_id(conn: Data<AppState>, user_id: Uuid) -> impl Responder {
         match sqlx::query_as::<_, Activities>(
-            "SELECT * FROM activities WHERE id = $1 AND is_deleted = false"
+            "SELECT * FROM activities WHERE user_id = $1 AND is_deleted = false"
         )
-            .bind(activity_id)
-            .fetch_one(&conn.db)
+            .bind(user_id.to_string())
+            .fetch_all(&conn.db)
             .await {
             Ok(activity) => HttpResponse::Ok().json(activity),
             Err(e) => {

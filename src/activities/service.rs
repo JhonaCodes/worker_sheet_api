@@ -12,12 +12,9 @@ pub async fn create_activity(
     ActivityRepository::create_activity(conn, new_activity.into_inner()).await
 }
 
-#[get("/activities/{id}")]
-pub async fn get_activity(
-    conn: web::Data<AppState>,
-    id: Path<Uuid>
-) -> impl Responder {
-    ActivityRepository::get_activity_by_id(conn, id.into_inner()).await
+#[get("/activities/{user_id}")]
+pub async fn get_activity(conn: Data<AppState>, user_id: Path<Uuid>) -> impl Responder {
+    ActivityRepository::get_activity_by_user_id(conn, user_id.into_inner()).await
 }
 
 #[get("/activities/participant/{user_id}")]
