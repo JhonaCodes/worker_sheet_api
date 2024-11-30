@@ -77,7 +77,7 @@ pub fn  send_email(user_email:&String) -> Result<bool, Box<dyn std::error::Error
     }
 
 
-    Ok((result_sending_email))
+    Ok(result_sending_email)
 }
 
 

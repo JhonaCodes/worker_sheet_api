@@ -227,56 +227,6 @@ WHERE p.user_id = $1;"#)
     })))
     }
 
-    // Fotos
-    // pub async fn add_photo(conn: Data<AppState>, activity_id: Uuid, mut payload: Multipart) -> impl Responder {
-    //
-    //     // Procesamiento básico sería:
-    //
-    //     // 1. Recibir el archivo
-    //     while let Ok(Some(mut field)) = payload.try_next().await {
-    //
-    //         // 2. Generar nombre único
-    //         let file_name = format!("{}.jpg", Uuid::new_v4());
-    //         let file_path = format!("/app/uploads/{}", file_name);
-    //         let url_path = format!("/images/{}", file_name);
-    //
-    //         println!("File name = {}",file_name );
-    //         println!("File path = {}",file_path );
-    //         println!("Url path = {}",url_path );
-    //
-    //         // 3. Guardar el archivo
-    //         if let Ok( mut file) = std::fs::File::create(&file_path) {
-    //
-    //             while let Some(chunk) = field.next().await {
-    //
-    //                 let data = chunk.unwrap();
-    //
-    //                 file.write_all(&data).unwrap();
-    //
-    //             }
-    //
-    //             // 4. Guardar en base de datos
-    //             return match sqlx::query(
-    //                 "INSERT INTO activity_photos (activity_id, url) VALUES ($1, $2)"
-    //             )
-    //                 .bind(activity_id)
-    //                 .bind(&url_path)
-    //                 .execute(&conn.db)
-    //                 .await {
-    //                 Ok(_) => HttpResponse::Created().json("Photo added successfully"),
-    //                 Err(e) => {
-    //                     log::error!("Error adding photo: {:?}", e);
-    //                     HttpResponse::InternalServerError().json("Error saving to database")
-    //                 }
-    //             }
-    //         }
-    //
-    //     }
-    //
-    //     HttpResponse::BadRequest().json("No file provided")
-    //
-    // }
-
     pub async fn get_activity_photos(conn: Data<AppState>, activity_id: String) -> impl Responder {
         match sqlx::query_as::<_, PhotoActivity>(
             "SELECT * FROM activity_photos WHERE activity_id = $1"
