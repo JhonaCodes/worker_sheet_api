@@ -1,8 +1,10 @@
+use std::fs;
 use std::io::Write;
 use std::path::Path;
 use actix_multipart::Multipart;
 use actix_web::{HttpResponse, Responder, web::Data};
 use futures::{StreamExt, TryStreamExt};
+use serde_json::json;
 use uuid::Uuid;
 use crate::helper::response::{susses_json, un_susses_json};
 use crate::model::AppState;
@@ -159,46 +161,121 @@ WHERE p.user_id = $1;"#)
         }
     }
 
-    // Fotos
-    pub async fn add_photo(conn: Data<AppState>, activity_id:i32, mut payload: Multipart) -> impl Responder {
+    pub async fn add_photo(
+        conn: Data<AppState>,
+        activity_id: Uuid,
+        mut payload: Multipart
+    ) -> Result<HttpResponse, actix_web::Error> {
+        // Asegurarse de que el directorio existe
+        fs::create_dir_all("/app/uploads").map_err(|e| {
+            log::error!("Error creating directory: {:?}", e);
+            actix_web::error::ErrorInternalServerError("Failed to create directory")
+        })?;
 
-        // Procesamiento básico sería:
-
-        // 1. Recibir el archivo
-        while let Ok(Some(mut field)) = payload.try_next().await {
-
-            // 2. Generar nombre único
+        while let Some(mut field) = payload.try_next().await? {
+            // Generar nombre único para el archivo
             let file_name = format!("{}.jpg", Uuid::new_v4());
             let file_path = format!("/app/uploads/{}", file_name);
-            let url_path = format!("/images/{}", file_name); // URL que guardarás en DB
+            let url_path = format!("/images/{}", file_name);
 
-            // 3. Guardar el archivo
-            if let Ok(mut file) = std::fs::File::create(&file_path) {
-                while let Some(chunk) = field.next().await {
-                    let data = chunk.unwrap();
-                    file.write_all(&data).unwrap();
+            log::info!("Saving file: {}", file_path);
+
+            // Crear y escribir el archivo
+            let mut file = fs::File::create(&file_path).map_err(|e| {
+                log::error!("Error creating file: {:?}", e);
+                actix_web::error::ErrorInternalServerError("Failed to create file")
+            })?;
+
+            // Procesar el archivo por chunks
+            while let Some(chunk) = field.try_next().await? {
+                file.write_all(&chunk).map_err(|e| {
+                    log::error!("Error writing file: {:?}", e);
+                    actix_web::error::ErrorInternalServerError("Failed to write file")
+                })?;
+            }
+
+            // Guardar en base de datos
+            match sqlx::query(
+                "INSERT INTO activity_photos (activity_id, url) VALUES ($1, $2)"
+            )
+                .bind(activity_id)
+                .bind(&url_path)
+                .execute(&conn.db)
+                .await {
+                Ok(_) => {
+                    log::info!("Photo saved successfully: {}", url_path);
+                    return Ok(HttpResponse::Created().json(json!({
+                    "message": "Photo added successfully",
+                    "url": url_path
+                })));
                 }
-
-                // 4. Guardar en base de datos
-                return match sqlx::query(
-                    "INSERT INTO activity_photos (activity_id, url) VALUES ($1, $2)"
-                )
-                    .bind(activity_id)
-                    .bind(&url_path)
-                    .execute(&conn.db)
-                    .await {
-                    Ok(_) => HttpResponse::Created().json("Photo added successfully"),
-                    Err(e) => {
-                        log::error!("Error adding photo: {:?}", e);
-                        HttpResponse::InternalServerError().json("Error saving to database")
+                Err(e) => {
+                    // Eliminar el archivo si falla la base de datos
+                    if let Err(delete_err) = fs::remove_file(&file_path) {
+                        log::error!("Error deleting file after DB failure: {:?}", delete_err);
                     }
+                    log::error!("Database error: {:?}", e);
+                    return Ok(HttpResponse::InternalServerError().json(json!({
+                    "error": "Error saving to database"
+                })));
                 }
             }
         }
 
-        HttpResponse::BadRequest().json("No file provided")
-
+        Ok(HttpResponse::BadRequest().json(json!({
+        "error": "No file provided"
+    })))
     }
+
+    // Fotos
+    // pub async fn add_photo(conn: Data<AppState>, activity_id: Uuid, mut payload: Multipart) -> impl Responder {
+    //
+    //     // Procesamiento básico sería:
+    //
+    //     // 1. Recibir el archivo
+    //     while let Ok(Some(mut field)) = payload.try_next().await {
+    //
+    //         // 2. Generar nombre único
+    //         let file_name = format!("{}.jpg", Uuid::new_v4());
+    //         let file_path = format!("/app/uploads/{}", file_name);
+    //         let url_path = format!("/images/{}", file_name);
+    //
+    //         println!("File name = {}",file_name );
+    //         println!("File path = {}",file_path );
+    //         println!("Url path = {}",url_path );
+    //
+    //         // 3. Guardar el archivo
+    //         if let Ok( mut file) = std::fs::File::create(&file_path) {
+    //
+    //             while let Some(chunk) = field.next().await {
+    //
+    //                 let data = chunk.unwrap();
+    //
+    //                 file.write_all(&data).unwrap();
+    //
+    //             }
+    //
+    //             // 4. Guardar en base de datos
+    //             return match sqlx::query(
+    //                 "INSERT INTO activity_photos (activity_id, url) VALUES ($1, $2)"
+    //             )
+    //                 .bind(activity_id)
+    //                 .bind(&url_path)
+    //                 .execute(&conn.db)
+    //                 .await {
+    //                 Ok(_) => HttpResponse::Created().json("Photo added successfully"),
+    //                 Err(e) => {
+    //                     log::error!("Error adding photo: {:?}", e);
+    //                     HttpResponse::InternalServerError().json("Error saving to database")
+    //                 }
+    //             }
+    //         }
+    //
+    //     }
+    //
+    //     HttpResponse::BadRequest().json("No file provided")
+    //
+    // }
 
     pub async fn get_activity_photos(conn: Data<AppState>, activity_id: String) -> impl Responder {
         match sqlx::query_as::<_, PhotoActivity>(

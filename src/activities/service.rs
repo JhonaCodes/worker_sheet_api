@@ -58,11 +58,9 @@ pub async fn delete_activity(
 }
 
 #[post("/activities/{id}/photos")]
-pub async fn add_photo( conn: web::Data<AppState>,  path: web::Path<i32>, payload: Multipart, ) -> impl Responder {
-    let activity_id = path.into_inner();
-    println!("Activity id : {}", activity_id);
-
-    ActivityRepository::add_photo(conn, activity_id, payload).await
+pub async fn add_photo( conn: web::Data<AppState>,  activity_id: Path<Uuid>, payload: Multipart, ) -> impl Responder {
+    println!("Add photo {}", activity_id);
+    ActivityRepository::add_photo(conn, activity_id.into_inner(), payload).await
 }
 
 #[get("/activities/{id}/photos")]
