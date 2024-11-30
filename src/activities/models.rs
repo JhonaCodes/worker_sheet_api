@@ -23,7 +23,7 @@ pub struct Activities {
 
 #[derive(Serialize, Deserialize, FromRow)]
 pub struct PhotoActivity{
-    pub id: String,
+    pub id: i32,
     pub activity_id: String,
     pub url: String,
 }

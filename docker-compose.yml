@@ -53,6 +53,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    volumes:
+      - uploads_data:/app/uploads
     ports:
       - "${SERVER_PORT}:${SERVER_PORT}"
     env_file: ${ENV_FILE:-.env}
@@ -88,6 +90,7 @@ services:
 volumes:
   postgres_data_prod:
   postgres_data_dev:
+  uploads_data:
 
 networks:
   app-network:

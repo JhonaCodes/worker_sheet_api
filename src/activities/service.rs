@@ -1,3 +1,4 @@
+use actix_multipart::Multipart;
 use actix_web::{delete, get, patch, post, put, web::{self, Json, Path, Query}, Responder};
 use actix_web::web::Data;
 use uuid::Uuid;
@@ -57,11 +58,11 @@ pub async fn delete_activity(
 }
 
 #[post("/activities/{id}/photos")]
-pub async fn add_photo(
-    conn: web::Data<AppState>,
-    photo: Json<NewPhoto>
-) -> impl Responder {
-    ActivityRepository::add_photo(conn, photo.into_inner()).await
+pub async fn add_photo( conn: web::Data<AppState>,  path: web::Path<i32>, payload: Multipart, ) -> impl Responder {
+    let activity_id = path.into_inner();
+    println!("Activity id : {}", activity_id);
+
+    ActivityRepository::add_photo(conn, activity_id, payload).await
 }
 
 #[get("/activities/{id}/photos")]

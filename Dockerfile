@@ -27,6 +27,9 @@ COPY sql /docker-entrypoint-initdb.d/
 COPY src ./src
 COPY Cargo.toml Cargo.lock ./
 
+RUN mkdir -p /app/uploads
+RUN chmod 755 /app/uploads
+
 # Ejecutar la compilación
 RUN cargo build --release
 
