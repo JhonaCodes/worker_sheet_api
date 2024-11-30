@@ -14,6 +14,7 @@ use dotenvy::dotenv;
 
 use std::io::Result;
 use actix_cors::Cors;
+use actix_files::Files;
 use actix_web::web::{service, Data};
 use actix_web_httpauth::middleware::HttpAuthentication;
 use sqlx::postgres::PgPoolOptions;
@@ -67,6 +68,7 @@ async fn main() -> Result<()> {
             )
             .wrap(actix_web::middleware::Logger::default())
             .service(index_page)
+            .service(Files::new("/uploads", "/app/uploads"))
             .service(web::scope("/register").service(create_user))
             .service(web::scope("/auth")
                          .service(jwt_profile_validate)

@@ -54,7 +54,7 @@ services:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - ./uploads:/app/uploads
+      - uploads_data:/app/uploads
     ports:
       - "${SERVER_PORT}:${SERVER_PORT}"
     env_file: ${ENV_FILE:-.env}

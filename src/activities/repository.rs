@@ -176,7 +176,7 @@ WHERE p.user_id = $1;"#)
             // Generar nombre único para el archivo
             let file_name = format!("{}.jpg", Uuid::new_v4());
             let file_path = format!("/app/uploads/{}", file_name);
-            let url_path = format!("/images/{}", file_name);
+            let url_path = format!("/uploads/{}", file_name);
 
             log::info!("Saving file: {}", file_path);
 
@@ -195,7 +195,7 @@ WHERE p.user_id = $1;"#)
             }
 
             // Guardar en base de datos
-            match sqlx::query(
+            return match sqlx::query(
                 "INSERT INTO activity_photos (activity_id, url) VALUES ($1, $2)"
             )
                 .bind(activity_id)
@@ -204,10 +204,10 @@ WHERE p.user_id = $1;"#)
                 .await {
                 Ok(_) => {
                     log::info!("Photo saved successfully: {}", url_path);
-                    return Ok(HttpResponse::Created().json(json!({
+                    Ok(HttpResponse::Created().json(json!({
                     "message": "Photo added successfully",
                     "url": url_path
-                })));
+                })))
                 }
                 Err(e) => {
                     // Eliminar el archivo si falla la base de datos
@@ -215,9 +215,9 @@ WHERE p.user_id = $1;"#)
                         log::error!("Error deleting file after DB failure: {:?}", delete_err);
                     }
                     log::error!("Database error: {:?}", e);
-                    return Ok(HttpResponse::InternalServerError().json(json!({
+                    Ok(HttpResponse::InternalServerError().json(json!({
                     "error": "Error saving to database"
-                })));
+                })))
                 }
             }
         }
