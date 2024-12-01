@@ -108,6 +108,14 @@ jobs:
             -p 3000:3000 \
             --cap-add=SYS_PTRACE \
             --security-opt seccomp=unconfined \
+            -e APP_ENV='prod' \
+            -e DATABASE_MAX_CONNECTIONS='${{ env.DATABASE_MAX_CONNECTIONS }}' \
+            -e DATABASE_MIN_CONNECTIONS='${{ env.DATABASE_MIN_CONNECTIONS }}' \
+            -e DATABASE_POOL_SIZE='${{env.DATABASE_POOL_SIZE}}' \
+            -e DATABASE_TIMEOUT='${{env.DATABASE_TIMEOUT}}' \
+            -e SERVER_HOST='${{env.SERVER_HOST}}' \
+            -e SERVER_PORT='${{env.SERVER_PORT}}' \
+            -e DEBUG_MODE='${{ secrets.DEBUG_MODE }}' \
             -e DATABASE_USER='${{ secrets.DATABASE_USER }}' \
             -e DATABASE_PASSWORD='${{ secrets.DATABASE_PASSWORD }}' \
             -e DATABASE_PORT='${{ secrets.DATABASE_PORT }}' \
@@ -121,5 +129,4 @@ jobs:
             -e SMTP_EMAIL_PASSWORD='${{ secrets.SMTP_EMAIL_PASSWORD }}' \
             -e SMTP_SERVER='${{ secrets.SMTP_SERVER }}' \
             -e SMTP_SERVER_PORT='${{ secrets.SMTP_SERVER_PORT }}' \
-            -e DEBUG_MODE='${{ secrets.DEBUG_MODE }}' \
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
