@@ -24,6 +24,9 @@ run_prod() {
     stop_containers
     echo -e "${GREEN}🚀 Iniciando aplicación con Docker Compose...${NC}"
     docker-compose --profile prod up --build -d
+
+    echo -e "${GREEN}🚀 Publicando imagen en GitHub Packages...${NC}"
+    docker push docker.pkg.github.com/jhonacodes/worker_sheet_api/worker_sheet_image
 }
 
 # Función para desarrollo local con DB en Docker y build completo

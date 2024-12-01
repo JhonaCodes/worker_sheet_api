@@ -202,6 +202,169 @@ cargo build --release
   - Confirma que el contenedor de la base de datos esté activo
   - Comprueba la conectividad al puerto correcto
 
+
+# Docker y GitHub Packages 🐳
+
+Este proyecto utiliza Docker para su despliegue y GitHub Packages como registro de contenedores. A continuación, se detallan los pasos para configurar y utilizar ambos servicios.
+
+## Configuración de Docker 🛠️
+
+### Requisitos Previos
+- Docker instalado
+- Docker Compose instalado
+- Cuenta de GitHub
+
+### Estructura de Archivos
+```
+.
+├── Dockerfile
+├── docker-compose.yml
+├── scripts/
+│   └── app.sh
+└── .env (o dev.env para desarrollo)
+```
+
+### Ambientes Disponibles
+El proyecto soporta dos ambientes:
+- Desarrollo: `./scripts/app.sh dev`
+- Producción: `./scripts/app.sh prod`
+
+## Publicación en GitHub Packages 🚀
+
+### 1. Configuración Inicial
+1. En GitHub, navega a:
+   - `Settings` → `Developer Settings` → `Personal Access Tokens` → `Tokens (Classic)`
+2. Crea un nuevo token:
+   - Nombre: `worker_sheet_api_key`
+   - Permisos necesarios: `write:packages`, `delete:packages`
+3. Guarda el token generado en `worker_sheet_api_key.txt` en tu proyecto
+
+### 2. Autenticación
+```bash
+cat worker_sheet_api_key.txt | docker login docker.pkg.github.com -u tu_usuario --password-stdin
+```
+
+### 3. Publicación de la Imagen
+
+#### Usando Docker Compose (Recomendado)
+
+1. El `docker-compose.yml` ya incluye la configuración necesaria:
+```yaml
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: docker.pkg.github.com/jhonacodes/worker_sheet_api/worker_sheet_image
+```
+
+2. Construir y publicar:
+```bash
+# Construir y levantar contenedores
+./scripts/app.sh prod
+
+# Publicar en GitHub Packages
+docker push docker.pkg.github.com/jhonacodes/worker_sheet_api/worker_sheet_image
+```
+
+#### Método Alternativo (Docker Directo)
+```bash
+# Construir
+docker build -t docker.pkg.github.com/jhonacodes/worker_sheet_api/worker_sheet_image .
+
+# Publicar
+docker push docker.pkg.github.com/jhonacodes/worker_sheet_api/worker_sheet_image
+```
+
+## Control de Acceso 🔐
+
+### Visibilidad
+- La visibilidad de la imagen coincide con la del repositorio:
+   - Repositorio privado → Imagen privada
+   - Repositorio público → Imagen pública
+
+### Acceso a Imágenes Privadas
+Los usuarios necesitan:
+1. Autenticación en GitHub Packages
+2. Permisos en el repositorio
+3. Token personal con permisos adecuados
+
+### Gestión de Permisos
+- Navega a: Repositorio → Settings → Collaborators and teams
+- Añade usuarios o equipos
+- Asigna permisos apropiados (read, write, admin)
+
+## Uso de la Imagen 📦
+
+### Pull de la Imagen
+```bash
+# Autenticación (necesaria para imágenes privadas)
+docker login docker.pkg.github.com -u tu_usuario -p tu_token
+
+# Descargar imagen
+docker pull docker.pkg.github.com/jhonacodes/worker_sheet_api/worker_sheet_image
+```
+
+### Ejecución
+```bash
+docker run -d \
+  --name worker_sheet_api \
+  -p 8080:8080 \
+  docker.pkg.github.com/jhonacodes/worker_sheet_api/worker_sheet_image
+```
+
+## Notas Importantes 📝
+
+- Los nombres de repositorio e imagen deben estar en minúsculas
+- Si no se especifica versión, se usa `:latest` por defecto
+- El token de acceso debe mantenerse seguro y no compartirse
+- Se recomienda usar variables de entorno para configuración sensible
+- Revisa periódicamente los permisos de acceso al repositorio
+
+## Comandos Útiles 🛠️
+
+```bash
+# Ver imágenes locales
+docker images
+
+# Ver contenedores en ejecución
+docker ps
+
+# Logs del contenedor
+docker logs worker_sheet_api
+
+# Detener contenedor
+docker stop worker_sheet_api
+
+# Eliminar contenedor
+docker rm worker_sheet_api
+
+# Eliminar imagen
+docker rmi docker.pkg.github.com/jhonacodes/worker_sheet_api/worker_sheet_image
+```
+
+## Solución de Problemas 🔧
+
+### Errores Comunes
+1. **Error de autenticación**:
+   ```
+   Error: authentication required
+   ```
+   Solución: Verifica tu token y vuelve a hacer login
+
+2. **Error de nombre en mayúsculas**:
+   ```
+   invalid reference format
+   ```
+   Solución: Usa solo minúsculas en nombres de repositorio e imagen
+
+3. **Error de permisos**:
+   ```
+   denied: permission denied
+   ```
+   Solución: Verifica los permisos del token y del repositorio
+
+
 ## 🔒 Licencia
 
 Este proyecto está bajo una licencia propietaria. Ver el archivo [LICENSE](LICENSE) para más detalles.

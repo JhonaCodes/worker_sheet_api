@@ -53,6 +53,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: docker.pkg.github.com/jhonacodes/worker_sheet_api/worker_sheet_image
     volumes:
       - uploads_data:/app/uploads
     ports:
