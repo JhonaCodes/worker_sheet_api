@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Worker Sheet API - Documentación MVP</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary: #475569;
+            --accent: #e11d48;
+            --background: #f8fafc;
+            --text: #1e293b;
+            --gray-light: #e2e8f0;
+            --white: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .navbar {
+            background-color: var(--white);
+            padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .nav-links a {
+            color: var(--secondary);
+            text-decoration: none;
+            margin-left: 2rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .hero {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: var(--white);
+            padding: 8rem 2rem 4rem;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            font-weight: 800;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+            opacity: 0.9;
+        }
+
+        .api-section {
+            max-width: 1200px;
+            margin: 4rem auto;
+            padding: 0 2rem;
+        }
+
+        .api-section h2 {
+            color: var(--primary);
+            margin: 3rem 0 1rem;
+            font-size: 1.75rem;
+            border-bottom: 2px solid var(--gray-light);
+            padding-bottom: 0.5rem;
+        }
+
+        .endpoint {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--gray-light);
+        }
+
+        .endpoint-method {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-right: 0.5rem;
+        }
+
+        .get { background: #dbeafe; color: #1e40af; }
+        .post { background: #dcfce7; color: #166534; }
+        .put { background: #fef3c7; color: #92400e; }
+        .delete { background: #fee2e2; color: #991b1b; }
+        .patch { background: #fae8ff; color: #86198f; }
+
+        .endpoint-path {
+            font-family: monospace;
+            font-size: 1rem;
+        }
+
+        .endpoint-description {
+            margin-top: 0.5rem;
+            color: var(--secondary);
+        }
+
+        footer {
+            background: var(--white);
+            padding: 2rem;
+            text-align: center;
+            margin-top: 4rem;
+            border-top: 1px solid var(--gray-light);
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2rem; }
+            .nav-links { display: none; }
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar">
+    <div class="navbar-content">
+        <a href="#" class="logo">Worker Sheet API</a>
+        <div class="nav-links">
+            <a href="#auth">Autenticación</a>
+            <a href="#users">Usuarios</a>
+            <a href="#activities">Bitácoras</a>
+        </div>
+    </div>
+</nav>
+
+<header class="hero">
+    <h1>Worker Sheet API</h1>
+    <p>Sistema de gestión digital para control y registro de actividades laborales</p>
+</header>
+
+<section id="api" class="api-section">
+    <h2 id="auth">🔐 Autenticación</h2>
+
+    <div class="endpoint">
+        <span class="endpoint-method post">POST</span>
+        <span class="endpoint-path">/auth/login</span>
+        <p class="endpoint-description">Iniciar sesión de usuario</p>
+    </div>
+
+    <h2 id="users">👥 Gestión de Usuarios</h2>
+
+    <div class="endpoint">
+        <span class="endpoint-method post">POST</span>
+        <span class="endpoint-path">/user</span>
+        <p class="endpoint-description">Crear nuevo usuario</p>
+    </div>
+
+    <div class="endpoint">
+        <span class="endpoint-method get">GET</span>
+        <span class="endpoint-path">/user/{id}</span>
+        <p class="endpoint-description">Obtener información de un usuario</p>
+    </div>
+
+    <div class="endpoint">
+        <span class="endpoint-method get">GET</span>
+        <span class="endpoint-path">/users</span>
+        <p class="endpoint-description">Listar usuarios con paginación y filtros</p>
+    </div>
+
+    <div class="endpoint">
+        <span class="endpoint-method put">PUT</span>
+        <span class="endpoint-path">/user/{id}</span>
+        <p class="endpoint-description">Actualizar información de usuario</p>
+    </div>
+
+    <div class="endpoint">
+        <span class="endpoint-method patch">PATCH</span>
+        <span class="endpoint-path">/user/{id}/status</span>
+        <p class="endpoint-description">Actualizar estado del usuario</p>
+    </div>
+
+    <div class="endpoint">
+        <span class="endpoint-method get">GET</span>
+        <span class="endpoint-path">/user/{id}/activities</span>
+        <p class="endpoint-description">Obtener bitácoras del usuario</p>
+    </div>
+
+    <h2 id="activities">📝 Gestión de Bitácoras</h2>
+
+    <div class="endpoint">
+        <span class="endpoint-method post">POST</span>
+        <span class="endpoint-path">/activities</span>
+        <p class="endpoint-description">Crear nueva bitácora</p>
+    </div>
+
+    <div class="endpoint">
+        <span class="endpoint-method get">GET</span>
+        <span class="endpoint-path">/activities/{id}</span>
+        <p class="endpoint-description">Obtener detalle de bitácora</p>
+    </div>
+
+    <div class="endpoint">
+        <span class="endpoint-method get">GET</span>
+        <span class="endpoint-path">/activities</span>
+        <p class="endpoint-description">Listar bitácoras con filtros y paginación</p>
+    </div>
+
+    <div class="endpoint">
+        <span class="endpoint-method put">PUT</span>
+        <span class="endpoint-path">/activities/{id}</span>
+        <p class="endpoint-description">Actualizar bitácora</p>
+    </div>
+
+    <div class="endpoint">
+        <span class="endpoint-method patch">PATCH</span>
+        <span class="endpoint-path">/activities/{id}/status</span>
+        <p class="endpoint-description">Actualizar estado de bitácora</p>
+    </div>
+
+    <div class="endpoint">
+        <span class="endpoint-method delete">DELETE</span>
+        <span class="endpoint-path">/activities/{id}</span>
+        <p class="endpoint-description">Eliminar bitácora (soft delete)</p>
+    </div>
+
+    <div class="endpoint">
+        <span class="endpoint-method post">POST</span>
+        <span class="endpoint-path">/activities/{id}/photos</span>
+        <p class="endpoint-description">Agregar fotos a la bitácora</p>
+    </div>
+
+    <div class="endpoint">
+        <span class="endpoint-method get">GET</span>
+        <span class="endpoint-path">/activities/{id}/photos</span>
+        <p class="endpoint-description">Obtener fotos de la bitácora</p>
+    </div>
+
+    <div class="endpoint">
+        <span class="endpoint-method delete">DELETE</span>
+        <span class="endpoint-path">/activities/{id}/photos/{photoId}</span>
+        <p class="endpoint-description">Eliminar foto de la bitácora</p>
+    </div>
+
+    <div class="endpoint">
+        <span class="endpoint-method post">POST</span>
+        <span class="endpoint-path">/activities/sync</span>
+        <p class="endpoint-description">Sincronizar bitácoras offline</p>
+    </div>
+</section>
+
+<footer>
+    <p>© 2024 Worker Sheet API. Todos los derechos reservados.</p>
+</footer>
+
+<script>
+    // Smooth scroll
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            document.querySelector(this.getAttribute('href')).scrollIntoView({
+                behavior: 'smooth'
+            });
+        });
+    });
+
+    // Navbar animation
+    let navbar = document.querySelector('.navbar');
+    let lastScroll = 0;
+
+    window.addEventListener('scroll', () => {
+        const currentScroll = window.pageYOffset;
+        if (currentScroll <= 0) {
+            navbar.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+            return;
+        }
+        if (currentScroll > lastScroll) {
+            navbar.style.transform = 'translateY(-100%)';
+        } else {
+            navbar.style.transform = 'translateY(0)';
+            navbar.style.boxShadow = '0 1px 3px rgba(0,0,0,0.2)';
+        }
+        lastScroll = currentScroll;
+    });
+</script>
+</body>
+</html>

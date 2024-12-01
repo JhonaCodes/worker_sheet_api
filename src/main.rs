@@ -24,7 +24,7 @@ use crate::auth::service::{basic_auth, jwt_profile_validate, refresh_token};
 use crate::db::url_database;
 use crate::model::AppState;
 use crate::participants::service::{create_participant, get_activities_by_participant_id, get_participants};
-use crate::r#static::service::index_page;
+use crate::r#static::service::{api_doc_page, index_page};
 use crate::user::service::{create_user, get_users, update_user, update_user_notifications, update_user_password, update_user_status};
 
 #[actix_web::main]
@@ -68,6 +68,7 @@ async fn main() -> Result<()> {
             )
             .wrap(actix_web::middleware::Logger::default())
             .service(index_page)
+            .service(api_doc_page)
             .service(Files::new("/uploads", "/app/uploads"))
             .service(web::scope("/register").service(create_user))
             .service(web::scope("/auth")

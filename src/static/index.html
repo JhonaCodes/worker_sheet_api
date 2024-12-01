@@ -3,43 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Worker Sheet API - Documentación MVP</title>
+    <title>WorkerSheet - Gestión de Órdenes de Trabajo</title>
     <style>
-        :root {
-            --primary: #2563eb;
-            --primary-dark: #1e40af;
-            --secondary: #475569;
-            --accent: #e11d48;
-            --background: #f8fafc;
-            --text: #1e293b;
-            --gray-light: #e2e8f0;
-            --white: #ffffff;
-        }
-
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         }
 
         body {
-            background-color: var(--background);
-            color: var(--text);
+            font-family: 'Segoe UI', system-ui, sans-serif;
             line-height: 1.6;
         }
 
         .navbar {
-            background-color: var(--white);
-            padding: 1rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            background: #1a365d;
+            padding: 1rem 2rem;
             position: fixed;
             width: 100%;
-            top: 0;
-            z-index: 100;
+            z-index: 1000;
         }
 
-        .navbar-content {
+        .nav-content {
             max-width: 1200px;
             margin: 0 auto;
             display: flex;
@@ -48,265 +33,191 @@
         }
 
         .logo {
+            color: white;
             font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary);
-            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
         }
 
         .nav-links a {
-            color: var(--secondary);
+            color: white;
             text-decoration: none;
-            margin-left: 2rem;
-            font-weight: 500;
-            transition: color 0.2s;
+            transition: color 0.3s;
         }
 
         .nav-links a:hover {
-            color: var(--primary);
+            color: #90cdf4;
+        }
+
+        .login-btn {
+            background: white;
+            color: #1a365d;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+
+        .login-btn:hover {
+            background: #f0f0f0;
         }
 
         .hero {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: var(--white);
-            padding: 8rem 2rem 4rem;
+            background: linear-gradient(135deg, #1a365d 0%, #2d4a8c 100%);
+            color: white;
+            padding: 8rem 2rem 6rem;
             text-align: center;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
         }
 
         .hero h1 {
             font-size: 3rem;
-            margin-bottom: 1rem;
-            font-weight: 800;
+            margin-bottom: 1.5rem;
         }
 
         .hero p {
-            font-size: 1.25rem;
-            max-width: 600px;
-            margin: 0 auto 2rem;
-            opacity: 0.9;
+            font-size: 1.2rem;
+            color: #e2e8f0;
+            margin-bottom: 2rem;
         }
 
-        .api-section {
-            max-width: 1200px;
-            margin: 4rem auto;
-            padding: 0 2rem;
-        }
-
-        .api-section h2 {
-            color: var(--primary);
-            margin: 3rem 0 1rem;
-            font-size: 1.75rem;
-            border-bottom: 2px solid var(--gray-light);
-            padding-bottom: 0.5rem;
-        }
-
-        .endpoint {
-            background: var(--white);
-            padding: 1.5rem;
+        .cta-btn {
+            background: #3182ce;
+            color: white;
+            padding: 1rem 2rem;
             border-radius: 0.5rem;
-            margin-bottom: 1rem;
-            border: 1px solid var(--gray-light);
-        }
-
-        .endpoint-method {
+            text-decoration: none;
+            font-weight: bold;
+            transition: background 0.3s;
             display: inline-block;
-            padding: 0.25rem 0.5rem;
-            border-radius: 0.25rem;
-            font-weight: 600;
-            font-size: 0.875rem;
-            margin-right: 0.5rem;
         }
 
-        .get { background: #dbeafe; color: #1e40af; }
-        .post { background: #dcfce7; color: #166534; }
-        .put { background: #fef3c7; color: #92400e; }
-        .delete { background: #fee2e2; color: #991b1b; }
-        .patch { background: #fae8ff; color: #86198f; }
-
-        .endpoint-path {
-            font-family: monospace;
-            font-size: 1rem;
+        .cta-btn:hover {
+            background: #2c5282;
         }
 
-        .endpoint-description {
-            margin-top: 0.5rem;
-            color: var(--secondary);
+        .features {
+            padding: 4rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
-        footer {
-            background: var(--white);
-            padding: 2rem;
+        .features h2 {
             text-align: center;
-            margin-top: 4rem;
-            border-top: 1px solid var(--gray-light);
+            font-size: 2rem;
+            margin-bottom: 3rem;
+            color: #1a365d;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            padding: 2rem;
+            border-radius: 0.5rem;
+            background: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .feature-icon {
+            background: #ebf8ff;
+            width: 4rem;
+            height: 4rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            color: #3182ce;
+            font-size: 2rem;
         }
 
         @media (max-width: 768px) {
-            .hero h1 { font-size: 2rem; }
-            .nav-links { display: none; }
+            .nav-links {
+                display: none;
+            }
+            
+            .hero h1 {
+                font-size: 2rem;
+            }
         }
     </style>
 </head>
 <body>
-<nav class="navbar">
-    <div class="navbar-content">
-        <a href="#" class="logo">Worker Sheet API</a>
-        <div class="nav-links">
-            <a href="#auth">Autenticación</a>
-            <a href="#users">Usuarios</a>
-            <a href="#activities">Bitácoras</a>
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="logo">WorkerSheet</div>
+            <div class="nav-links">
+                <a href="#features">Características</a>
+                <a href="#pricing">Precios</a>
+                <a href="#contact">Contacto</a>
+                <a href="/login" class="login-btn">Iniciar Sesión</a>
+            </div>
         </div>
-    </div>
-</nav>
+    </nav>
 
-<header class="hero">
-    <h1>Worker Sheet API</h1>
-    <p>Sistema de gestión digital para control y registro de actividades laborales</p>
-</header>
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Gestiona tus órdenes de trabajo de forma digital</h1>
+            <p>
+                Optimiza el seguimiento de tareas, mejora la comunicación con tu equipo
+                y aumenta la productividad con nuestra plataforma integral.
+            </p>
+            <a href="/signup" class="cta-btn">Comenzar Ahora</a>
+        </div>
+    </section>
 
-<section id="api" class="api-section">
-    <h2 id="auth">🔐 Autenticación</h2>
+    <section class="features" id="features">
+        <h2>¿Por qué elegir WorkerSheet?</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">📋</div>
+                <h3>Gestión Simple</h3>
+                <p>Crea y asigna órdenes de trabajo en segundos con nuestra interfaz intuitiva.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📱</div>
+                <h3>Actualizaciones en Tiempo Real</h3>
+                <p>Recibe actualizaciones instantáneas con fotos y comentarios de tu equipo.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>Seguimiento Detallado</h3>
+                <p>Mantén un registro completo de todas las actividades y progreso.</p>
+            </div>
+        </div>
+    </section>
 
-    <div class="endpoint">
-        <span class="endpoint-method post">POST</span>
-        <span class="endpoint-path">/auth/login</span>
-        <p class="endpoint-description">Iniciar sesión de usuario</p>
-    </div>
-
-    <h2 id="users">👥 Gestión de Usuarios</h2>
-
-    <div class="endpoint">
-        <span class="endpoint-method post">POST</span>
-        <span class="endpoint-path">/user</span>
-        <p class="endpoint-description">Crear nuevo usuario</p>
-    </div>
-
-    <div class="endpoint">
-        <span class="endpoint-method get">GET</span>
-        <span class="endpoint-path">/user/{id}</span>
-        <p class="endpoint-description">Obtener información de un usuario</p>
-    </div>
-
-    <div class="endpoint">
-        <span class="endpoint-method get">GET</span>
-        <span class="endpoint-path">/users</span>
-        <p class="endpoint-description">Listar usuarios con paginación y filtros</p>
-    </div>
-
-    <div class="endpoint">
-        <span class="endpoint-method put">PUT</span>
-        <span class="endpoint-path">/user/{id}</span>
-        <p class="endpoint-description">Actualizar información de usuario</p>
-    </div>
-
-    <div class="endpoint">
-        <span class="endpoint-method patch">PATCH</span>
-        <span class="endpoint-path">/user/{id}/status</span>
-        <p class="endpoint-description">Actualizar estado del usuario</p>
-    </div>
-
-    <div class="endpoint">
-        <span class="endpoint-method get">GET</span>
-        <span class="endpoint-path">/user/{id}/activities</span>
-        <p class="endpoint-description">Obtener bitácoras del usuario</p>
-    </div>
-
-    <h2 id="activities">📝 Gestión de Bitácoras</h2>
-
-    <div class="endpoint">
-        <span class="endpoint-method post">POST</span>
-        <span class="endpoint-path">/activities</span>
-        <p class="endpoint-description">Crear nueva bitácora</p>
-    </div>
-
-    <div class="endpoint">
-        <span class="endpoint-method get">GET</span>
-        <span class="endpoint-path">/activities/{id}</span>
-        <p class="endpoint-description">Obtener detalle de bitácora</p>
-    </div>
-
-    <div class="endpoint">
-        <span class="endpoint-method get">GET</span>
-        <span class="endpoint-path">/activities</span>
-        <p class="endpoint-description">Listar bitácoras con filtros y paginación</p>
-    </div>
-
-    <div class="endpoint">
-        <span class="endpoint-method put">PUT</span>
-        <span class="endpoint-path">/activities/{id}</span>
-        <p class="endpoint-description">Actualizar bitácora</p>
-    </div>
-
-    <div class="endpoint">
-        <span class="endpoint-method patch">PATCH</span>
-        <span class="endpoint-path">/activities/{id}/status</span>
-        <p class="endpoint-description">Actualizar estado de bitácora</p>
-    </div>
-
-    <div class="endpoint">
-        <span class="endpoint-method delete">DELETE</span>
-        <span class="endpoint-path">/activities/{id}</span>
-        <p class="endpoint-description">Eliminar bitácora (soft delete)</p>
-    </div>
-
-    <div class="endpoint">
-        <span class="endpoint-method post">POST</span>
-        <span class="endpoint-path">/activities/{id}/photos</span>
-        <p class="endpoint-description">Agregar fotos a la bitácora</p>
-    </div>
-
-    <div class="endpoint">
-        <span class="endpoint-method get">GET</span>
-        <span class="endpoint-path">/activities/{id}/photos</span>
-        <p class="endpoint-description">Obtener fotos de la bitácora</p>
-    </div>
-
-    <div class="endpoint">
-        <span class="endpoint-method delete">DELETE</span>
-        <span class="endpoint-path">/activities/{id}/photos/{photoId}</span>
-        <p class="endpoint-description">Eliminar foto de la bitácora</p>
-    </div>
-
-    <div class="endpoint">
-        <span class="endpoint-method post">POST</span>
-        <span class="endpoint-path">/activities/sync</span>
-        <p class="endpoint-description">Sincronizar bitácoras offline</p>
-    </div>
-</section>
-
-<footer>
-    <p>© 2024 Worker Sheet API. Todos los derechos reservados.</p>
-</footer>
-
-<script>
-    // Smooth scroll
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            document.querySelector(this.getAttribute('href')).scrollIntoView({
-                behavior: 'smooth'
+    <script>
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
             });
         });
-    });
 
-    // Navbar animation
-    let navbar = document.querySelector('.navbar');
-    let lastScroll = 0;
-
-    window.addEventListener('scroll', () => {
-        const currentScroll = window.pageYOffset;
-        if (currentScroll <= 0) {
-            navbar.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
-            return;
-        }
-        if (currentScroll > lastScroll) {
-            navbar.style.transform = 'translateY(-100%)';
-        } else {
-            navbar.style.transform = 'translateY(0)';
-            navbar.style.boxShadow = '0 1px 3px rgba(0,0,0,0.2)';
-        }
-        lastScroll = currentScroll;
-    });
-</script>
+        window.addEventListener('scroll', function() {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 0) {
+                navbar.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+            } else {
+                navbar.style.boxShadow = 'none';
+            }
+        });
+    </script>
 </body>
 </html>
