@@ -85,16 +85,17 @@ jobs:
             # Crear network si no existe
             docker network create app-network || true && \
 
-            # Iniciar PostgreSQL
-            docker run -d \
-              --name db \
-              --network app-network \
-              -e POSTGRES_USER='${{ secrets.DATABASE_USER }}' \
-              -e POSTGRES_PASSWORD='${{ secrets.DATABASE_PASSWORD }}' \
-              -e POSTGRES_DB='${{ secrets.DATABASE_NAME }}' \
-              postgres:15 && \
+          # Iniciar PostgreSQL
+          docker run -d \
+            --name db \
+            --network app-network \
+            -p ${{ secrets.DATABASE_PORT }}:5432 \
+            -e POSTGRES_USER='${{ secrets.DATABASE_USER }}' \
+            -e POSTGRES_PASSWORD='${{ secrets.DATABASE_PASSWORD }}' \
+            -e POSTGRES_DB='${{ secrets.DATABASE_NAME }}' \
+            postgres:15.4-alpine && \
 
-            # Pull y ejecutar la aplicación
+           # Pull y ejecutar la aplicación
             docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest && \
             docker stop worker_sheet_container || true && \
             docker rm worker_sheet_container || true && \
