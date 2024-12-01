@@ -402,4 +402,4 @@ Para problemas adicionales:
 
 ## 🔒 Licencia
 
-Este proyecto está bajo una licencia propietaria. Ver el archivo [LICENSE](LICENSE) para más detalles.
+Este proyecto está bajo una licencia propietaria. Ver el archivo [LICENSE](LICENCE) para más detalles.
