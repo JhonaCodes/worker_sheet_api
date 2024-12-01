@@ -70,7 +70,7 @@ jobs:
           ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
           
           # Login a GitHub Packages en el VPS
-          ssh -i ssh_key ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin"
+          ssh -i ssh_key ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "echo ${{ secrets.G_TOKEN }} | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin"
           
           # Actualizar y reiniciar el contenedor
           ssh -i ssh_key ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "\
