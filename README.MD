@@ -213,6 +213,7 @@ Este proyecto utiliza Docker para su despliegue y GitHub Packages como registro 
 - Docker instalado
 - Docker Compose instalado
 - Cuenta de GitHub
+- Repositorio creado en GitHub
 
 ### Estructura de Archivos
 ```
@@ -248,7 +249,7 @@ cat worker_sheet_api_key.txt | docker login docker.pkg.github.com -u tu_usuario 
 
 #### Usando Docker Compose (Recomendado)
 
-1. El `docker-compose.yml` ya incluye la configuración necesaria:
+1. El `docker-compose.yml` debe incluir la configuración (usando minúsculas):
 ```yaml
 services:
   api:
@@ -267,19 +268,63 @@ services:
 docker push docker.pkg.github.com/jhonacodes/worker_sheet_api/worker_sheet_image
 ```
 
-#### Método Alternativo (Docker Directo)
-```bash
-# Construir
-docker build -t docker.pkg.github.com/jhonacodes/worker_sheet_api/worker_sheet_image .
+### 4. Verificar Publicación
+1. Ve a tu repositorio en GitHub
+2. En el panel derecho, busca la sección "Packages"
+3. O visita directamente:
+   - `https://github.com/tu-usuario/worker_sheet_api/packages`
+   - `https://github.com/users/tu-usuario/packages`
 
-# Publicar
-docker push docker.pkg.github.com/jhonacodes/worker_sheet_api/worker_sheet_image
+## Automatización con GitHub Actions 🤖
+
+Para automatizar la publicación, crea el archivo `.github/workflows/docker-publish.yml`:
+
+```yaml
+name: Docker Build and Publish
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  REGISTRY: docker.pkg.github.com
+  IMAGE_NAME: jhonacodes/worker_sheet_api/worker_sheet_image
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Packages
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 ```
 
 ## Control de Acceso 🔐
 
 ### Visibilidad
-- La visibilidad de la imagen coincide con la del repositorio:
+- Por defecto, las imágenes son privadas
+- La visibilidad coincide con la del repositorio:
    - Repositorio privado → Imagen privada
    - Repositorio público → Imagen pública
 
@@ -315,33 +360,12 @@ docker run -d \
 
 ## Notas Importantes 📝
 
-- Los nombres de repositorio e imagen deben estar en minúsculas
+- Los nombres de repositorio e imagen DEBEN estar en minúsculas
 - Si no se especifica versión, se usa `:latest` por defecto
 - El token de acceso debe mantenerse seguro y no compartirse
 - Se recomienda usar variables de entorno para configuración sensible
-- Revisa periódicamente los permisos de acceso al repositorio
-
-## Comandos Útiles 🛠️
-
-```bash
-# Ver imágenes locales
-docker images
-
-# Ver contenedores en ejecución
-docker ps
-
-# Logs del contenedor
-docker logs worker_sheet_api
-
-# Detener contenedor
-docker stop worker_sheet_api
-
-# Eliminar contenedor
-docker rm worker_sheet_api
-
-# Eliminar imagen
-docker rmi docker.pkg.github.com/jhonacodes/worker_sheet_api/worker_sheet_image
-```
+- Las imágenes son privadas por defecto para mayor seguridad
+- Verifica la visibilidad deseada en la configuración del repositorio
 
 ## Solución de Problemas 🔧
 
@@ -363,6 +387,17 @@ docker rmi docker.pkg.github.com/jhonacodes/worker_sheet_api/worker_sheet_image
    denied: permission denied
    ```
    Solución: Verifica los permisos del token y del repositorio
+
+4. **Imagen no visible**:
+   - Verifica que la imagen se subió correctamente con `docker push`
+   - Revisa la sección "Packages" en tu repositorio
+   - Confirma que tienes los permisos necesarios
+
+### Contacto y Soporte
+Para problemas adicionales:
+- Abre un issue en el repositorio
+- Contacta al equipo de desarrollo
+- Consulta la [documentación oficial de GitHub Packages](https://docs.github.com/en/packages)
 
 
 ## 🔒 Licencia
