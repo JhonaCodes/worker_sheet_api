@@ -1,7 +1,6 @@
 # Usar imagen oficial de Rust
 FROM rust:1.82.0 as builder
 
-
 # Recibir los argumentos
 ARG DATABASE_USER
 ARG DATABASE_PASSWORD
@@ -58,6 +57,7 @@ COPY sql /docker-entrypoint-initdb.d/
 COPY src ./src
 COPY Cargo.toml Cargo.lock ./
 
+# Crear directorio de uploads en el builder
 RUN mkdir -p /app/uploads
 RUN chmod 755 /app/uploads
 
@@ -75,8 +75,12 @@ RUN apt-get update && apt-get install -y \
     postgresql-client && \
     rm -rf /var/lib/apt/lists/*
 
+# Crear el directorio de uploads en el contenedor final
+RUN mkdir -p /app/uploads && chmod 755 /app/uploads
+
 # Copiar la aplicación compilada y los scripts SQL desde la imagen builder
 COPY --from=builder /app/target/release/worker_sheet_api /usr/local/bin/worker_sheet_api
+COPY --from=builder /app/uploads /app/uploads
 COPY sql /docker-entrypoint-initdb.d/
 COPY scripts/start.sh /start.sh
 RUN chmod +x /start.sh

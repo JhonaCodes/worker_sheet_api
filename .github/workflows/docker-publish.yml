@@ -129,4 +129,5 @@ jobs:
             -e SMTP_EMAIL_PASSWORD='${{ secrets.SMTP_EMAIL_PASSWORD }}' \
             -e SMTP_SERVER='${{ secrets.SMTP_SERVER }}' \
             -e SMTP_SERVER_PORT='${{ secrets.SMTP_SERVER_PORT }}' \
+            -v uploads_data:/app/uploads \
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
