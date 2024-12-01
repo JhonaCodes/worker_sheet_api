@@ -101,25 +101,25 @@ jobs:
             docker rm worker_sheet_container || true && \
           
             # Docker run api
-            docker run -d \
-              --name worker_sheet_container \
-              --network app-network \
-              --restart unless-stopped \
-              -p 3000:3000 \
-              --cap-add=SYS_PTRACE \
-              --security-opt seccomp=unconfined \
-              -e DATABASE_USER='${{ secrets.DATABASE_USER }}' \
-              -e DATABASE_PASSWORD='${{ secrets.DATABASE_PASSWORD }}' \
-              -e DATABASE_PORT='${{ secrets.DATABASE_PORT }}' \
-              -e DATABASE_NAME='${{ secrets.DATABASE_NAME }}' \
-              -e DATABASE_HOST='${{ secrets.DATABASE_HOST }}' \
-              -e DATABASE_URL='postgres://${{ secrets.DATABASE_USER }}:${{ secrets.DATABASE_PASSWORD }}@${{ secrets.DATABASE_HOST }}:${{ secrets.DATABASE_PORT }}/${{ secrets.DATABASE_NAME }}' \
-              -e HASH_SECRET='${{ secrets.HASH_SECRET }}' \
-              -e JWT_SECRET='${{ secrets.JWT_SECRET }}' \
-              -e API_KEY='${{ secrets.API_KEY }}' \
-              -e SMTP_EMAIL='${{ secrets.SMTP_EMAIL }}' \
-              -e SMTP_EMAIL_PASSWORD='${{ secrets.SMTP_EMAIL_PASSWORD }}' \
-              -e SMTP_SERVER='${{ secrets.SMTP_SERVER }}' \
-              -e SMTP_SERVER_PORT='${{ secrets.SMTP_SERVER_PORT }}' \
-              -e DEBUG_MODE='${{ secrets.DEBUG_MODE }}' \          
-              ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+          docker run -d \
+            --name worker_sheet_container \
+            --network app-network \
+            --restart unless-stopped \
+            -p 3000:3000 \
+            --cap-add=SYS_PTRACE \
+            --security-opt seccomp=unconfined \
+            -e DATABASE_USER='${{ secrets.DATABASE_USER }}' \
+            -e DATABASE_PASSWORD='${{ secrets.DATABASE_PASSWORD }}' \
+            -e DATABASE_PORT='${{ secrets.DATABASE_PORT }}' \
+            -e DATABASE_NAME='${{ secrets.DATABASE_NAME }}' \
+            -e DATABASE_HOST='${{ secrets.DATABASE_HOST }}' \
+            -e DATABASE_URL='postgres://${{ secrets.DATABASE_USER }}:${{ secrets.DATABASE_PASSWORD }}@${{ secrets.DATABASE_HOST }}:${{ secrets.DATABASE_PORT }}/${{ secrets.DATABASE_NAME }}' \
+            -e HASH_SECRET='${{ secrets.HASH_SECRET }}' \
+            -e JWT_SECRET='${{ secrets.JWT_SECRET }}' \
+            -e API_KEY='${{ secrets.API_KEY }}' \
+            -e SMTP_EMAIL='${{ secrets.SMTP_EMAIL }}' \
+            -e SMTP_EMAIL_PASSWORD='${{ secrets.SMTP_EMAIL_PASSWORD }}' \
+            -e SMTP_SERVER='${{ secrets.SMTP_SERVER }}' \
+            -e SMTP_SERVER_PORT='${{ secrets.SMTP_SERVER_PORT }}' \
+            -e DEBUG_MODE='${{ secrets.DEBUG_MODE }}' \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
