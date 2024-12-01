@@ -64,6 +64,14 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_KEY }}
         run: |
           # Configurar SSH
+
+          if [ ! -z "${{ secrets.VPS_HOST }}" ]; then
+            echo "VPS_HOST exists and is not empty"
+            echo "First few characters: ${VPS_HOST:0:3}..."
+          else
+            echo "VPS_HOST is empty!"
+          fi
+          
           echo "$SSH_PRIVATE_KEY" > ssh_key
           chmod 600 ssh_key
           mkdir -p ~/.ssh
