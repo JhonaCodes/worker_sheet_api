@@ -43,3 +43,4 @@ desktop.ini
 /scripts/diesel.sh
 /scripts/git_reload.sh
 /worker_sheet_api_key.txt
+/prod.txt
