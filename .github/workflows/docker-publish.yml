@@ -99,11 +99,15 @@ jobs:
             docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest && \
             docker stop worker_sheet_container || true && \
             docker rm worker_sheet_container || true && \
+          
+            # Docker run api
             docker run -d \
               --name worker_sheet_container \
               --network app-network \
               --restart unless-stopped \
               -p 3000:3000 \
+              --cap-add=SYS_PTRACE \
+              --security-opt seccomp=unconfined \
               -e DATABASE_USER='${{ secrets.DATABASE_USER }}' \
               -e DATABASE_PASSWORD='${{ secrets.DATABASE_PASSWORD }}' \
               -e DATABASE_PORT='${{ secrets.DATABASE_PORT }}' \
