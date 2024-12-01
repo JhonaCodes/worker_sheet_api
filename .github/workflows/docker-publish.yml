@@ -58,3 +58,40 @@ jobs:
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      - name: Deploy to VPS
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          # Configurar SSH
+          echo "$SSH_PRIVATE_KEY" > ssh_key
+          chmod 600 ssh_key
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+          
+          # Login a GitHub Packages en el VPS
+          ssh -i ssh_key ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin"
+          
+          # Actualizar y reiniciar el contenedor
+          ssh -i ssh_key ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "\
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest && \
+            docker stop worker_sheet_container || true && \
+            docker rm worker_sheet_container || true && \
+            docker run -d \
+              --name worker_sheet_container \
+              --restart unless-stopped \
+              -p 3000:3000 \
+              -e DATABASE_USER='${{ secrets.DATABASE_USER }}' \
+              -e DATABASE_PASSWORD='${{ secrets.DATABASE_PASSWORD }}' \
+              -e DATABASE_PORT='${{ secrets.DATABASE_PORT }}' \
+              -e DATABASE_NAME='${{ secrets.DATABASE_NAME }}' \
+              -e DATABASE_HOST='${{ secrets.DATABASE_HOST }}' \
+              -e DATABASE_URL='postgres://${{ secrets.DATABASE_USER }}:${{ secrets.DATABASE_PASSWORD }}@${{ secrets.DATABASE_HOST }}:${{ secrets.DATABASE_PORT }}/${{ secrets.DATABASE_NAME }}' \
+              -e HASH_SECRET='${{ secrets.HASH_SECRET }}' \
+              -e JWT_SECRET='${{ secrets.JWT_SECRET }}' \
+              -e API_KEY='${{ secrets.API_KEY }}' \
+              -e SMTP_EMAIL='${{ secrets.SMTP_EMAIL }}' \
+              -e SMTP_EMAIL_PASSWORD='${{ secrets.SMTP_EMAIL_PASSWORD }}' \
+              -e SMTP_SERVER='${{ secrets.SMTP_SERVER }}' \
+              -e SMTP_SERVER_PORT='${{ secrets.SMTP_SERVER_PORT }}' \
+              ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
