@@ -132,9 +132,21 @@ jobs:
           # Login a GitHub Packages en el VPS
           ssh -i ssh_key ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "echo ${{ secrets.G_TOKEN }} | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin"
 
-          # Desplegar usando docker compose
+          # Desplegar usando docker compose con limpieza previa de contenedores
           ssh -i ssh_key ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "\
-            export DOCKER_BUILDKIT=1 && \
+            # Detener y eliminar contenedores existentes (viejos)
+            docker stop worker_sheet_container db || true && \
+            docker rm worker_sheet_container db || true && \
+          
+            # Detener y eliminar contenedores de docker-compose si existen
+            docker stop api_prod database_prod || true && \
+            docker rm api_prod database_prod || true && \
+          
+            # Pull de la nueva imagen
             docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest && \
-            docker compose -f docker-compose.yml --profile prod down && \
+          
+            # Limpiar imágenes antiguas
+            docker image prune -f && \
+          
+            # Desplegar con docker compose
             docker compose -f docker-compose.yml --profile prod up -d"
