@@ -26,6 +26,30 @@ jobs:
       options: --security-opt seccomp=unconfined
 
     steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y libpq-dev postgresql-client libclang-dev libargon2-dev
+
+      - name: Run tests and generate coverage
+        run: cargo tarpaulin --verbose --workspace --timeout 120 --out Xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  build-and-push:
+    needs: test-coverage
+    runs-on: ubuntu-latest
+    environment: prod
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -58,11 +82,6 @@ jobs:
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v3
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Deploy to VPS
         env:
@@ -135,11 +154,3 @@ jobs:
             -e SMTP_SERVER_PORT='${{ secrets.SMTP_SERVER_PORT }}' \
             -v uploads_data:/app/uploads \
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
-
-  build-and-push:
-    needs: test-coverage  # Esto asegura que los tests se ejecuten antes
-    runs-on: ubuntu-latest
-    environment: prod
-    permissions:
-      contents: read
-      packages: write
