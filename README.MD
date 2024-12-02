@@ -3,6 +3,7 @@
 ![Rust](https://img.shields.io/badge/rust-1.78.0-orange.svg)
 ![Actix Web](https://img.shields.io/badge/actix--web-4.0-blue.svg)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-blue.svg)
+[![codecov](https://codecov.io/gh/jhonacodes/worker_sheet_api/graph/badge.svg?token=BNJWMICV1I)](https://codecov.io/gh/jhonacodes/worker_sheet_api)
 
 API REST construida con Rust, Actix-Web y SQLx para gestión de bitácoras de trabajo.
 

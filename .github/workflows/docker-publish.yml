@@ -108,6 +108,10 @@ jobs:
             # Crear network si no existe
             docker network create app-network || true && \
 
+            # Detener y eliminar contenedor DB anterior con force
+            docker stop db || true && \
+            docker rm -f db || true && \
+
           # Iniciar PostgreSQL
           docker run -d \
             --name db \
