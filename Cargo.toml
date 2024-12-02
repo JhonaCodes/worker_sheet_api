@@ -41,3 +41,7 @@ actix-cors = "0.7.0"
 
 # Msm
 lettre = "0.11.10"
+
+
+#Test
+actix-rt = "2.10.0"

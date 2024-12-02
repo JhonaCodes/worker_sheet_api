@@ -1,0 +1,21 @@
+coverage:
+  status:
+    project:
+      default:
+        target: 70%
+        threshold: 1%
+    patch:
+      default:
+        target: 70%
+
+ignore:
+  - "src/main.rs"     # ignora el archivo main
+  - "src/db.rs"       # ignora configuración de DB
+  - "src/env/**/*"    # ignora configuraciones de ambiente
+  - "tests/**/*"
+  - "**/*.json"
+  - "**/*.md"
+  - "**/*.yml"
+  - "**/*.yaml"
+  - "Dockerfile"
+  - "docker-compose.yml"
