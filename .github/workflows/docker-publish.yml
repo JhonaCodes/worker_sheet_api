@@ -19,12 +19,11 @@ env:
   DEBUG_MODE: false
 
 jobs:
-  build-and-push:
+  test-coverage:
     runs-on: ubuntu-latest
-    environment: prod
-    permissions:
-      contents: read
-      packages: write
+    container:
+      image: xd009642/tarpaulin
+      options: --security-opt seccomp=unconfined
 
     steps:
       - name: Checkout repository
@@ -136,3 +135,11 @@ jobs:
             -e SMTP_SERVER_PORT='${{ secrets.SMTP_SERVER_PORT }}' \
             -v uploads_data:/app/uploads \
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+
+  build-and-push:
+    needs: test-coverage  # Esto asegura que los tests se ejecuten antes
+    runs-on: ubuntu-latest
+    environment: prod
+    permissions:
+      contents: read
+      packages: write
