@@ -88,73 +88,65 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_KEY }}
         run: |
           # Configurar SSH
-          if [ ! -z "${{ secrets.VPS_HOST }}" ]; then
-            echo "VPS_HOST exists and is not empty"
-            echo "First few characters: ${VPS_HOST:0:3}..."
-          else
-            echo "VPS_HOST is empty!"
-          fi
-
           echo "$SSH_PRIVATE_KEY" > ssh_key
           chmod 600 ssh_key
           mkdir -p ~/.ssh
           ssh-keyscan -v -p 22 ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
 
+          # Crear archivo .env en el servidor
+          ssh -i ssh_key ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "cat > .env << EOF
+          APP_ENV=prod
+          DATABASE_MAX_CONNECTIONS=${{ env.DATABASE_MAX_CONNECTIONS }}
+          DATABASE_MIN_CONNECTIONS=${{ env.DATABASE_MIN_CONNECTIONS }}
+          DATABASE_POOL_SIZE=${{ env.DATABASE_POOL_SIZE }}
+          DATABASE_TIMEOUT=${{ env.DATABASE_TIMEOUT }}
+          SERVER_HOST=${{ env.SERVER_HOST }}
+          SERVER_PORT=${{ env.SERVER_PORT }}
+          DEBUG_MODE=${{ env.DEBUG_MODE }}
+          DATABASE_USER=${{ secrets.DATABASE_USER }}
+          DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}
+          DATABASE_PORT=${{ secrets.DATABASE_PORT }}
+          DATABASE_NAME=${{ secrets.DATABASE_NAME }}
+          DATABASE_HOST=${{ secrets.DATABASE_HOST }}
+          DATABASE_URL=postgres://${{ secrets.DATABASE_USER }}:${{ secrets.DATABASE_PASSWORD }}@${{ secrets.DATABASE_HOST }}:${{ secrets.DATABASE_PORT }}/${{ secrets.DATABASE_NAME }}
+          HASH_SECRET=${{ secrets.HASH_SECRET }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          API_KEY=${{ secrets.API_KEY }}
+          SMTP_EMAIL=${{ secrets.SMTP_EMAIL }}
+          SMTP_EMAIL_PASSWORD=${{ secrets.SMTP_EMAIL_PASSWORD }}
+          SMTP_SERVER=${{ secrets.SMTP_SERVER }}
+          SMTP_SERVER_PORT=${{ secrets.SMTP_SERVER_PORT }}
+          EOF"
+
+          # Copiar docker-compose.yml al servidor
+          scp -i ssh_key docker-compose.yml ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }}:~/docker-compose.yml
+
+          # Instalar docker compose en el VPS si no está instalado
+          ssh -i ssh_key ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "\
+            if ! command -v docker-compose &> /dev/null; then \
+              sudo apt-get update && \
+              sudo apt-get install -y docker-compose-plugin && \
+              sudo ln -s /usr/libexec/docker/cli-plugins/docker-compose /usr/local/bin/docker-compose; \
+            fi"
+
           # Login a GitHub Packages en el VPS
           ssh -i ssh_key ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "echo ${{ secrets.G_TOKEN }} | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin"
 
-          # Actualizar y reiniciar el contenedor
+          # Desplegar usando docker compose con limpieza previa de contenedores
           ssh -i ssh_key ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "\
-            # Crear network si no existe
-            docker network create app-network || true && \
-
-            # Detener y eliminar contenedor DB anterior con force
-            docker stop db || true && \
-            docker rm -f db || true && \
-
-          # Iniciar PostgreSQL
-          docker run -d \
-            --name db \
-            --network app-network \
-            -p ${{ secrets.DATABASE_PORT }}:5432 \
-            -e POSTGRES_USER='${{ secrets.DATABASE_USER }}' \
-            -e POSTGRES_PASSWORD='${{ secrets.DATABASE_PASSWORD }}' \
-            -e POSTGRES_DB='${{ secrets.DATABASE_NAME }}' \
-            postgres:15.4-alpine && \
-
-           # Pull y ejecutar la aplicación
-            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest && \
-            docker stop worker_sheet_container || true && \
-            docker rm worker_sheet_container || true && \
+            # Detener y eliminar contenedores existentes (viejos)
+            docker stop worker_sheet_container db || true && \
+            docker rm worker_sheet_container db || true && \
           
-            # Docker run api
-          docker run -d \
-            --name worker_sheet_container \
-            --network app-network \
-            --restart unless-stopped \
-            -p 3000:3000 \
-            --cap-add=SYS_PTRACE \
-            --security-opt seccomp=unconfined \
-            -e APP_ENV='prod' \
-            -e DATABASE_MAX_CONNECTIONS='${{ env.DATABASE_MAX_CONNECTIONS }}' \
-            -e DATABASE_MIN_CONNECTIONS='${{ env.DATABASE_MIN_CONNECTIONS }}' \
-            -e DATABASE_POOL_SIZE='${{env.DATABASE_POOL_SIZE}}' \
-            -e DATABASE_TIMEOUT='${{env.DATABASE_TIMEOUT}}' \
-            -e SERVER_HOST='${{env.SERVER_HOST}}' \
-            -e SERVER_PORT='${{env.SERVER_PORT}}' \
-            -e DEBUG_MODE='${{ secrets.DEBUG_MODE }}' \
-            -e DATABASE_USER='${{ secrets.DATABASE_USER }}' \
-            -e DATABASE_PASSWORD='${{ secrets.DATABASE_PASSWORD }}' \
-            -e DATABASE_PORT='${{ secrets.DATABASE_PORT }}' \
-            -e DATABASE_NAME='${{ secrets.DATABASE_NAME }}' \
-            -e DATABASE_HOST='${{ secrets.DATABASE_HOST }}' \
-            -e DATABASE_URL='postgres://${{ secrets.DATABASE_USER }}:${{ secrets.DATABASE_PASSWORD }}@${{ secrets.DATABASE_HOST }}:${{ secrets.DATABASE_PORT }}/${{ secrets.DATABASE_NAME }}' \
-            -e HASH_SECRET='${{ secrets.HASH_SECRET }}' \
-            -e JWT_SECRET='${{ secrets.JWT_SECRET }}' \
-            -e API_KEY='${{ secrets.API_KEY }}' \
-            -e SMTP_EMAIL='${{ secrets.SMTP_EMAIL }}' \
-            -e SMTP_EMAIL_PASSWORD='${{ secrets.SMTP_EMAIL_PASSWORD }}' \
-            -e SMTP_SERVER='${{ secrets.SMTP_SERVER }}' \
-            -e SMTP_SERVER_PORT='${{ secrets.SMTP_SERVER_PORT }}' \
-            -v uploads_data:/app/uploads \
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+            # Detener y eliminar contenedores de docker-compose si existen
+            docker stop api_prod database_prod || true && \
+            docker rm api_prod database_prod || true && \
+          
+            # Pull de la nueva imagen
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest && \
+          
+            # Limpiar imágenes antiguas
+            docker image prune -f && \
+          
+            # Desplegar con docker compose
+            docker compose -f docker-compose.yml --profile prod up -d"
