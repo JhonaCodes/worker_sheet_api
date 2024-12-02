@@ -1,42 +1,18 @@
-# docker-compose.yml
 version: '3.8'
 
 services:
   db:
-    container_name: database_prod
+    container_name: database_${APP_ENV}
     image: postgres:15
     ports:
       - "${DATABASE_PORT}:5432"
-    env_file: ${ENV_FILE:-.env}  # Usa .env por defecto
-    environment:
-      PGPASSFILE: /run/secrets/pgpass
-      POSTGRES_USER: ${DATABASE_USER}
-      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
-      POSTGRES_DB: ${DATABASE_NAME}
-    volumes:
-      - postgres_data_prod:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    networks:
-      - app-network
-    profiles:
-      - prod
-
-  db_dev:
-    container_name: database_dev
-    image: postgres:15
-    ports:
-      - "${DATABASE_PORT}:5432"  # Puerto diferente para desarrollo
-    env_file: dev.env
+    env_file: ${ENV_FILE:-.env}
     environment:
       POSTGRES_USER: ${DATABASE_USER}
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
       POSTGRES_DB: ${DATABASE_NAME}
     volumes:
-      - postgres_data_dev:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
       - ./sql:/docker-entrypoint-initdb.d
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}" ]
@@ -46,6 +22,7 @@ services:
     networks:
       - app-network
     profiles:
+      - prod
       - dev
 
   api:
@@ -87,11 +64,11 @@ services:
     profiles:
       - ${APP_ENV:-prod}
 
-
 volumes:
-  postgres_data_prod:
-  postgres_data_dev:
+  postgres_data:
+    name: postgres_data_${APP_ENV}
   uploads_data:
+    name: uploads_data_${APP_ENV}
 
 networks:
   app-network:

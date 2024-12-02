@@ -105,56 +105,59 @@ jobs:
 
           # Actualizar y reiniciar el contenedor
           ssh -i ssh_key ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "\
-            # Crear network si no existe
+            # Crear network y volúmenes si no existen
             docker network create app-network || true && \
+            docker volume create postgres_data_prod || true && \
+            docker volume create uploads_data_prod || true && \
 
-            # Detener y eliminar contenedor DB anterior con force
+            # Detener contenedores sin eliminar volúmenes
             docker stop db || true && \
-            docker rm -f db || true && \
-
-          # Iniciar PostgreSQL
-          docker run -d \
-            --name db \
-            --network app-network \
-            -p ${{ secrets.DATABASE_PORT }}:5432 \
-            -e POSTGRES_USER='${{ secrets.DATABASE_USER }}' \
-            -e POSTGRES_PASSWORD='${{ secrets.DATABASE_PASSWORD }}' \
-            -e POSTGRES_DB='${{ secrets.DATABASE_NAME }}' \
-            postgres:15.4-alpine && \
-
-           # Pull y ejecutar la aplicación
-            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest && \
+            docker rm db || true && \
             docker stop worker_sheet_container || true && \
             docker rm worker_sheet_container || true && \
+
+            # Iniciar PostgreSQL con volumen nombrado
+            docker run -d \
+              --name db \
+              --network app-network \
+              -p ${{ secrets.DATABASE_PORT }}:5432 \
+              -e POSTGRES_USER='${{ secrets.DATABASE_USER }}' \
+              -e POSTGRES_PASSWORD='${{ secrets.DATABASE_PASSWORD }}' \
+              -e POSTGRES_DB='${{ secrets.DATABASE_NAME }}' \
+              -v postgres_data_prod:/var/lib/postgresql/data \
+              postgres:15.4-alpine && \
+
+            # Pull y ejecutar la aplicación
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest && \
           
             # Docker run api
-          docker run -d \
-            --name worker_sheet_container \
-            --network app-network \
-            --restart unless-stopped \
-            -p 3000:3000 \
-            --cap-add=SYS_PTRACE \
-            --security-opt seccomp=unconfined \
-            -e APP_ENV='prod' \
-            -e DATABASE_MAX_CONNECTIONS='${{ env.DATABASE_MAX_CONNECTIONS }}' \
-            -e DATABASE_MIN_CONNECTIONS='${{ env.DATABASE_MIN_CONNECTIONS }}' \
-            -e DATABASE_POOL_SIZE='${{env.DATABASE_POOL_SIZE}}' \
-            -e DATABASE_TIMEOUT='${{env.DATABASE_TIMEOUT}}' \
-            -e SERVER_HOST='${{env.SERVER_HOST}}' \
-            -e SERVER_PORT='${{env.SERVER_PORT}}' \
-            -e DEBUG_MODE='${{ secrets.DEBUG_MODE }}' \
-            -e DATABASE_USER='${{ secrets.DATABASE_USER }}' \
-            -e DATABASE_PASSWORD='${{ secrets.DATABASE_PASSWORD }}' \
-            -e DATABASE_PORT='${{ secrets.DATABASE_PORT }}' \
-            -e DATABASE_NAME='${{ secrets.DATABASE_NAME }}' \
-            -e DATABASE_HOST='${{ secrets.DATABASE_HOST }}' \
-            -e DATABASE_URL='postgres://${{ secrets.DATABASE_USER }}:${{ secrets.DATABASE_PASSWORD }}@${{ secrets.DATABASE_HOST }}:${{ secrets.DATABASE_PORT }}/${{ secrets.DATABASE_NAME }}' \
-            -e HASH_SECRET='${{ secrets.HASH_SECRET }}' \
-            -e JWT_SECRET='${{ secrets.JWT_SECRET }}' \
-            -e API_KEY='${{ secrets.API_KEY }}' \
-            -e SMTP_EMAIL='${{ secrets.SMTP_EMAIL }}' \
-            -e SMTP_EMAIL_PASSWORD='${{ secrets.SMTP_EMAIL_PASSWORD }}' \
-            -e SMTP_SERVER='${{ secrets.SMTP_SERVER }}' \
-            -e SMTP_SERVER_PORT='${{ secrets.SMTP_SERVER_PORT }}' \
-            -v uploads_data:/app/uploads \
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+            docker run -d \
+              --name worker_sheet_container \
+              --network app-network \
+              --restart unless-stopped \
+              -p 3000:3000 \
+              --cap-add=SYS_PTRACE \
+              --security-opt seccomp=unconfined \
+              -e APP_ENV='prod' \
+              -e DATABASE_MAX_CONNECTIONS='${{ env.DATABASE_MAX_CONNECTIONS }}' \
+              -e DATABASE_MIN_CONNECTIONS='${{ env.DATABASE_MIN_CONNECTIONS }}' \
+              -e DATABASE_POOL_SIZE='${{env.DATABASE_POOL_SIZE}}' \
+              -e DATABASE_TIMEOUT='${{env.DATABASE_TIMEOUT}}' \
+              -e SERVER_HOST='${{env.SERVER_HOST}}' \
+              -e SERVER_PORT='${{env.SERVER_PORT}}' \
+              -e DEBUG_MODE='${{ secrets.DEBUG_MODE }}' \
+              -e DATABASE_USER='${{ secrets.DATABASE_USER }}' \
+              -e DATABASE_PASSWORD='${{ secrets.DATABASE_PASSWORD }}' \
+              -e DATABASE_PORT='${{ secrets.DATABASE_PORT }}' \
+              -e DATABASE_NAME='${{ secrets.DATABASE_NAME }}' \
+              -e DATABASE_HOST='${{ secrets.DATABASE_HOST }}' \
+              -e DATABASE_URL='postgres://${{ secrets.DATABASE_USER }}:${{ secrets.DATABASE_PASSWORD }}@${{ secrets.DATABASE_HOST }}:${{ secrets.DATABASE_PORT }}/${{ secrets.DATABASE_NAME }}' \
+              -e HASH_SECRET='${{ secrets.HASH_SECRET }}' \
+              -e JWT_SECRET='${{ secrets.JWT_SECRET }}' \
+              -e API_KEY='${{ secrets.API_KEY }}' \
+              -e SMTP_EMAIL='${{ secrets.SMTP_EMAIL }}' \
+              -e SMTP_EMAIL_PASSWORD='${{ secrets.SMTP_EMAIL_PASSWORD }}' \
+              -e SMTP_SERVER='${{ secrets.SMTP_SERVER }}' \
+              -e SMTP_SERVER_PORT='${{ secrets.SMTP_SERVER_PORT }}' \
+              -v uploads_data_prod:/app/uploads \
+              ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
