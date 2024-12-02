@@ -121,14 +121,20 @@ jobs:
           # Copiar docker-compose.yml al servidor
           scp -i ssh_key docker-compose.yml ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }}:~/docker-compose.yml
 
+          # Instalar docker compose en el VPS si no está instalado
+          ssh -i ssh_key ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "\
+            if ! command -v docker-compose &> /dev/null; then \
+              sudo apt-get update && \
+              sudo apt-get install -y docker-compose-plugin && \
+              sudo ln -s /usr/libexec/docker/cli-plugins/docker-compose /usr/local/bin/docker-compose; \
+            fi"
+
           # Login a GitHub Packages en el VPS
           ssh -i ssh_key ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "echo ${{ secrets.G_TOKEN }} | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin"
 
-          # Desplegar usando docker-compose
+          # Desplegar usando docker compose
           ssh -i ssh_key ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "\
-            # Pull la última imagen
+            export DOCKER_BUILDKIT=1 && \
             docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest && \
-          
-            # Desplegar con docker-compose
-            docker-compose -f docker-compose.yml --profile prod down && \
-            docker-compose -f docker-compose.yml --profile prod up -d"
+            docker compose -f docker-compose.yml --profile prod down && \
+            docker compose -f docker-compose.yml --profile prod up -d"
