@@ -7,7 +7,7 @@ use chrono::{NaiveDateTime, Utc};
 use uuid::Uuid;
 use crate::activities::models::Activities;
 use crate::auth::env::hash_secret;
-use crate::helper::response::send_email;
+use crate::helper::response::{send_email, susses_json, un_susses};
 use crate::model::AppState;
 use super::models::{UserModel, UpdateUser, UpdateUserNotifications, UpdateUserPassword, UpdateUserStatus, UserFilters, Users};
 
@@ -244,6 +244,20 @@ impl UserRepository {
                 log::error!("Error getting user activities: {:?}", e);
                 HttpResponse::InternalServerError().json(format!("Error: {:?}", e))
             }
+        }
+    }
+
+
+    pub async fn remove_user(conn: Data<AppState>, id:Uuid, mail:String)-> impl Responder {
+        match sqlx::query(r#"UPDATE users SET status = $1 WHERE id = $2 AND mail = $3"#)
+            .bind("deleted")
+            .bind(id)
+            .bind(mail)
+            .bind(&conn.db)
+            .await {
+            Ok(_) => susses_json("Usuario eliminado exitosamente"),
+            Err(_) => un_susses("Error al intentar eliminar usuario, comuníquese con soporte técnico")
+
         }
     }
     

@@ -56,3 +56,8 @@ pub async fn update_user_notifications( conn: Data<AppState>, id: Path<Uuid>,  n
 pub async fn update_user_password(conn: Data<AppState>, id: Path<Uuid>, password: Json<UpdateUserPassword>) -> impl Responder {
     UserRepository::update_user_password(conn, id.into_inner(), password.into_inner()).await
 }
+
+#[patch("/user/{id}/delete/{email}")]
+pub async fn delete_user(conn: Data<AppState>, id:Path<Uuid>, email: Path<String>) -> impl Responder {
+    UserRepository::remove_user(conn, id.into_inner(), email.into_inner()).await;
+}

@@ -25,7 +25,7 @@ use crate::db::url_database;
 use crate::model::AppState;
 use crate::participants::service::{create_participant, get_activities_by_participant_id, get_participants};
 use crate::r#static::service::{api_doc_page, index_page};
-use crate::user::service::{create_user, get_users, update_user, update_user_notifications, update_user_password, update_user_status};
+use crate::user::service::{create_user, delete_user, get_users, update_user, update_user_notifications, update_user_password, update_user_status};
 
 #[actix_web::main]
 async fn main() -> Result<()> {
@@ -83,6 +83,7 @@ async fn main() -> Result<()> {
                 .service(update_user_status)
                 .service(update_user_notifications)
                 .service(update_user_password)
+                .service(delete_user)
                 .service(create_activity)
                 .service(get_activity)
                 .service(delete_activity)
