@@ -1,5 +1,5 @@
 use super::models::{UserModel, UpdateUser, UpdateUserNotifications, UpdateUserPassword, UpdateUserStatus, UserFilters};
-use actix_web::{get, patch, post, put, web, Responder};
+use actix_web::{delete, get, patch, post, put, web, Responder};
 use actix_web::web::{Path, Query};
 
 use uuid::Uuid;
@@ -57,7 +57,7 @@ pub async fn update_user_password(conn: Data<AppState>, id: Path<Uuid>, password
     UserRepository::update_user_password(conn, id.into_inner(), password.into_inner()).await
 }
 
-#[patch("/user/{id}/delete/{email}")]
-pub async fn delete_user(conn: Data<AppState>, id:Path<Uuid>, email: Path<String>) -> impl Responder {
-    UserRepository::remove_user(conn, id.into_inner(), email.into_inner()).await;
+#[delete("/user/{id}/delete/{email}")]
+pub async fn delete_user(conn: Data<AppState>, id: Path<Uuid>, email: Path<String>) -> impl Responder {
+   return  UserRepository::remove_user(conn, id.into_inner(), email.into_inner()).await;
 }

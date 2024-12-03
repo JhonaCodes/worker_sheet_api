@@ -249,11 +249,11 @@ impl UserRepository {
 
 
     pub async fn remove_user(conn: Data<AppState>, id:Uuid, mail:String)-> impl Responder {
-        match sqlx::query(r#"UPDATE users SET status = $1 WHERE id = $2 AND mail = $3"#)
+        match sqlx::query(r#"UPDATE users SET status = $1 WHERE id = $2 AND email = $3"#)
             .bind("deleted")
             .bind(id)
             .bind(mail)
-            .bind(&conn.db)
+            .execute(&conn.db)
             .await {
             Ok(_) => susses_json("Usuario eliminado exitosamente"),
             Err(_) => un_susses("Error al intentar eliminar usuario, comuníquese con soporte técnico")
