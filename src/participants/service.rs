@@ -10,10 +10,11 @@ use crate::participants::repository::ParticipantsRepository;
 pub async fn create_participant(conn: Data<AppState>, body: Json<ParticipantsModel>)->impl Responder{
     return ParticipantsRepository::assign_participant(conn, body).await;
 }
-#[get("/participant/{id}")]
-pub async fn get_participants(conn: Data<AppState>, id_activity: Path<Uuid>) -> impl Responder {
+#[get("/participant/activity/{id}")]
+pub async fn get_participants_by_activity_id(conn: Data<AppState>, id_activity: Path<Uuid>) -> impl Responder {
     return ParticipantsRepository::get_participants(conn, id_activity.into_inner()).await;
 }
+
 
 #[post("/activities/{user_id}")]
 pub async fn get_activities_by_participant_id(conn: Data<AppState>, user_id: Path<Uuid>) -> impl  Responder{
