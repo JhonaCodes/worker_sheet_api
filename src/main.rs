@@ -69,7 +69,7 @@ async fn main() -> Result<()> {
             .wrap(actix_web::middleware::Logger::default())
             .service(index_page)
             .service(api_doc_page)
-            .service(Files::new("/uploads", "/app/uploads"))
+            //.service(Files::new("/uploads", "/app/uploads"))
             .service(web::scope("/register").service(create_user))
             .service(web::scope("/auth")
                          .service(jwt_profile_validate)
