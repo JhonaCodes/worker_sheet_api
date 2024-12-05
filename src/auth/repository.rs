@@ -26,7 +26,7 @@ impl AuthRepository {
                     return un_susses("Usuario eliminado");
                 }
               
-                if ValidateHelper::is_valid_email(&user.email){
+                if !ValidateHelper::is_valid_email(&user.email){
                    return un_susses("Al parecer, nuestro sistema detectó un error con sus datos.");
                 }
 
