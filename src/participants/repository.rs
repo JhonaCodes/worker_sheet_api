@@ -21,7 +21,7 @@ impl ParticipantsRepository {
         {
             Ok(_) => susses_json("User created successfully"),
             Err(_) => un_success_json(
-                "ParticipantAssignmentError",
+                "Participant assignment error",
                 Some("Ha ocurrido un error al intentar asignar el participante. Por favor, inténtalo nuevamente más tarde")
             )
         }
@@ -38,7 +38,7 @@ impl ParticipantsRepository {
                 println!("Error {}", err);
 
                 return un_success_json(
-                    "ParticipantFetchError",
+                    "Participant fetch error",
                     Some("Ocurrió un error al obtener la lista de participantes. Por favor, inténtalo nuevamente")
                 );
             }
@@ -55,7 +55,7 @@ impl ParticipantsRepository {
             Err(err) => {
                 println!("Error {}", err);
                 return un_success_json(
-                    "ActivityFetchError",
+                    "Activity fetch error",
                     Some("Ocurrió un error al obtener la lista de actividades. Por favor, inténtalo nuevamente")
                 );
             }
