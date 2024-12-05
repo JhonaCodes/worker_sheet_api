@@ -1,5 +1,4 @@
-use std::error::Error;
-use actix_web::{HttpResponse, Responder};
+use actix_web::{Responder};
 use actix_web::web::{Data, Json};
 use argonautica::Hasher;
 use chrono::{NaiveDateTime, Utc};
@@ -51,7 +50,7 @@ impl UserRepository {
                 Ok(_) => {
                     match send_email(&new_user.email) {
                         Ok(_) => {
-                            HttpResponse::Created().json("User created successfully")
+                            susses_json("User created successfully")
                         }
                         Err(_) => un_success_json(
                             "Email delivery error",
@@ -79,8 +78,8 @@ pub async fn get_by_id(conn: Data<AppState>, user_id: Uuid) -> impl Responder {
         match sqlx::query_as::<_,Users>("SELECT * FROM users WHERE id = $1" )
             .bind(user_id)
             .fetch_one(&conn.db).await {
-            Ok(user) => HttpResponse::Ok().json(user),
-            Err(e) => un_success_json(
+            Ok(user) => susses_json(user),
+            Err(_) => un_success_json(
                 "Error on calling users",
                 Some("Error al llamar listado de usuarios")
             )
@@ -106,11 +105,11 @@ pub async fn get_by_id(conn: Data<AppState>, user_id: Uuid) -> impl Responder {
             .bind(filters.created_to);
 
         match query.fetch_all(&conn.db).await {
-            Ok(users) => HttpResponse::Ok().json(users),
-            Err(e) => {
-                log::error!("Error listing users: {:?}", e);
-                HttpResponse::InternalServerError().json(format!("Error: {:?}", e))
-            }
+            Ok(users) => susses_json(users),
+            Err(_) => un_success_json(
+                "Error al listar usuarios",
+                Some("No se pudo obtener el listado de usuarios del sistema")
+            )
         }
     }
 
@@ -147,11 +146,11 @@ pub async fn get_by_id(conn: Data<AppState>, user_id: Uuid) -> impl Responder {
             .bind(id)
             .execute(&conn.db)
             .await {
-            Ok(_) => HttpResponse::Ok().json("User updated successfully"),
-            Err(e) => {
-                log::error!("Error updating user: {:?}", e);
-                HttpResponse::InternalServerError().json(format!("Error: {:?}", e))
-            }
+            Ok(_) => susses_json("User updated successfully"),
+            Err(_) => un_success_json(
+                "Error al actualizar usuario",
+                Some("No se pudo actualizar la información del usuario en el sistema")
+            )
         }
     }
 
@@ -169,11 +168,11 @@ pub async fn get_by_id(conn: Data<AppState>, user_id: Uuid) -> impl Responder {
             .bind(id)
             .execute(&conn.db)
             .await {
-            Ok(_) => HttpResponse::Ok().json("Status updated successfully"),
-            Err(e) => {
-                log::error!("Error updating status: {:?}", e);
-                HttpResponse::InternalServerError().json(format!("Error: {:?}", e))
-            }
+            Ok(_) => susses_json("Status updated successfully"),
+            Err(_) =>un_success_json(
+                "Error al actualizar estado",
+                Some("No se pudo actualizar el estado en el sistema")
+            )
         }
     }
 
@@ -198,11 +197,11 @@ pub async fn get_by_id(conn: Data<AppState>, user_id: Uuid) -> impl Responder {
             .bind(id)
             .execute(&conn.db)
             .await {
-            Ok(_) => HttpResponse::Ok().json("Notifications updated successfully"),
-            Err(e) => {
-                log::error!("Error updating notifications: {:?}", e);
-                HttpResponse::InternalServerError().json(format!("Error: {:?}", e))
-            }
+            Ok(_) => susses_json("Notifications updated successfully"),
+            Err(_) => un_success_json(
+                "Error al actualizar notificaciones",
+                Some("No se pudo actualizar las notificaciones en el sistema")
+            )
         }
     }
 
@@ -221,11 +220,11 @@ pub async fn get_by_id(conn: Data<AppState>, user_id: Uuid) -> impl Responder {
             .bind(id)
             .execute(&conn.db)
             .await {
-            Ok(_) => HttpResponse::Ok().json("Password updated successfully"),
-            Err(e) => {
-                log::error!("Error updating password: {:?}", e);
-                HttpResponse::InternalServerError().json(format!("Error: {:?}", e))
-            }
+            Ok(_) => susses_json("Password updated successfully"),
+            Err(_) => un_success_json(
+                "Error al actualizar contraseña",
+                Some("No se pudo actualizar la contraseña del usuario en el sistema")
+            )
         }
     }
 
@@ -249,11 +248,11 @@ pub async fn get_by_id(conn: Data<AppState>, user_id: Uuid) -> impl Responder {
             .bind(to_date);
 
         match query.fetch_all(&conn.db).await {
-            Ok(activities) => HttpResponse::Ok().json(activities),
-            Err(e) => {
-                log::error!("Error getting user activities: {:?}", e);
-                HttpResponse::InternalServerError().json(format!("Error: {:?}", e))
-            }
+            Ok(activities) => susses_json(activities),
+            Err(_) => un_success_json(
+                "Error al obtener actividades",
+                Some("No se pudo recuperar las actividades del usuario del sistema")
+            )
         }
     }
 
@@ -266,10 +265,10 @@ pub async fn get_by_id(conn: Data<AppState>, user_id: Uuid) -> impl Responder {
             .execute(&conn.db)
             .await {
             Ok(_) => susses_json("Usuario eliminado exitosamente"),
-            Err(e) => {
-                println!("{}", e);
-                HttpResponse::InternalServerError().json("Error:  When try to remove user.".to_string())
-            }
+            Err(_) => un_success_json(
+                "Error al eliminar usuario",
+                Some("No se pudo eliminar el usuario del sistema")
+            )
 
         }
     }

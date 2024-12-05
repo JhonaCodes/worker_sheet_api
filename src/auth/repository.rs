@@ -24,14 +24,14 @@ impl AuthRepository {
 
                 if user.status == "deleted" {
                     return un_success_json(
-                        "Deleted User Error",
+                        "Deleted user error",
                         Some("No es posible acceder a esta cuenta porque ha sido eliminada")
                     );
                 }
 
                 if !ValidateHelper::is_valid_email(&user.email) {
                     return un_success_json(
-                        "InvalidEmailError",
+                        "Invalid email error",
                         Some("El formato del correo electrónico no es válido")
                     );
                 }
@@ -80,13 +80,13 @@ impl AuthRepository {
                     susses_json(response_user)
                 } else {
                     un_success_json(
-                        "AuthenticationError",
+                        "Authentication error",
                         Some("Las credenciales proporcionadas son incorrectas. Por favor, verifica tu usuario y contraseña")
                     )
                 }
             }
             Err(_) => un_success_json(
-                "AuthenticationError",
+                "Authentication error",
                 Some("Las credenciales proporcionadas son incorrectas. Por favor, verifica tu usuario y contraseña")
             )
         }

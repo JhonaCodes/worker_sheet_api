@@ -38,10 +38,10 @@ impl ActivityRepository {
             .fetch_one(&conn.db)
             .await {
             Ok(activity) => susses_json(activity),
-            Err(e) => {
-                log::error!("Error creating activity: {:?}", e);
-                HttpResponse::InternalServerError().json(format!("Error: {:?}", e))
-            }
+            Err(_) => un_success_json(
+                "No se pudo registrar la cuenta",
+                Some("No se pudo crear el usuario. Por favor, verifica los datos ingresados e inténtalo nuevamente")
+            )
         }
     }
 
@@ -52,11 +52,11 @@ impl ActivityRepository {
             .bind(user_id.to_string())
             .fetch_all(&conn.db)
             .await {
-            Ok(activity) => HttpResponse::Ok().json(activity),
-            Err(e) => {
-                log::error!("Error getting activity: {:?}", e);
-                HttpResponse::NotFound().json(format!("Activity not found: {:?}", e))
-            }
+            Ok(activity) => susses_json(activity),
+            Err(e) =>un_success_json(
+                "No hay actividades",
+                Some("No se encontraron actividades relacionadas")
+            )
         }
     }
 
@@ -81,11 +81,11 @@ WHERE p.user_id = $1;"#)
         );
 
         match query.fetch_all(&conn.db).await {
-            Ok(activities) => HttpResponse::Ok().json(activities),
-            Err(e) => {
-                log::error!("Error listing activities: {:?}", e);
-                HttpResponse::InternalServerError().json(format!("Error: {:?}", e))
-            }
+            Ok(activities) => susses_json(activities),
+            Err(e) => un_success_json(
+                "Error en búsqueda de actividades",
+                Some("No se encontraron actividades asociadas a este usuario")
+            )
         }
     }
 
@@ -114,11 +114,11 @@ WHERE p.user_id = $1;"#)
             .bind(id)
             .execute(&conn.db)
             .await {
-            Ok(_) => HttpResponse::Ok().json("Activity updated successfully"),
-            Err(e) => {
-                log::error!("Error updating activity: {:?}", e);
-                HttpResponse::InternalServerError().json(format!("Error: {:?}", e))
-            }
+            Ok(_) => susses_json("Activity updated successfully"),
+            Err(e) => un_success_json(
+                "Error al actualizar actividad",
+                Some("No se pudo actualizar la actividad solicitada")
+            )
         }
     }
 
@@ -135,11 +135,11 @@ WHERE p.user_id = $1;"#)
             .bind(id)
             .execute(&conn.db)
             .await {
-            Ok(_) => HttpResponse::Ok().json("Status updated successfully"),
-            Err(e) => {
-                log::error!("Error updating status: {:?}", e);
-                HttpResponse::InternalServerError().json(format!("Error: {:?}", e))
-            }
+            Ok(_) => susses_json("Status updated successfully"),
+            Err(e) => un_success_json(
+                "Error al cambiar estado",
+                Some("No se pudo actualizar el estado de la actividad")
+            )
         }
     }
 
@@ -150,19 +150,15 @@ WHERE p.user_id = $1;"#)
             .bind(id)
             .execute(&conn.db)
             .await {
-            Ok(_) => HttpResponse::Ok().json("Activity deleted successfully"),
-            Err(e) => {
-                log::error!("Error deleting activity: {:?}", e);
-                HttpResponse::InternalServerError().json(format!("Error: {:?}", e))
-            }
+            Ok(_) => susses_json("Activity deleted successfully"),
+            Err(e) => un_success_json(
+                "Error al eliminar actividad",
+                Some("No se pudo eliminar la actividad del sistema")
+            )
         }
     }
 
-    pub async fn add_photo(
-        conn: Data<AppState>,
-        activity_id: Uuid,
-        mut payload: Multipart
-    ) -> Result<HttpResponse, actix_web::Error> {
+    pub async fn add_photo( conn: Data<AppState>, activity_id: Uuid,  mut payload: Multipart ) -> impl Responder {
         // Asegurarse de que el directorio existe
         fs::create_dir_all("/app/uploads").map_err(|e| {
             log::error!("Error creating directory: {:?}", e);
@@ -199,29 +195,21 @@ WHERE p.user_id = $1;"#)
                 .bind(&url_path)
                 .execute(&conn.db)
                 .await {
-                Ok(_) => {
-                    log::info!("Photo saved successfully: {}", url_path);
-                    Ok(HttpResponse::Created().json(json!({
-                    "message": "Photo added successfully",
-                    "url": url_path
-                })))
-                }
-                Err(e) => {
-                    // Eliminar el archivo si falla la base de datos
-                    if let Err(delete_err) = fs::remove_file(&file_path) {
-                        log::error!("Error deleting file after DB failure: {:?}", delete_err);
-                    }
-                    log::error!("Database error: {:?}", e);
-                    Ok(HttpResponse::InternalServerError().json(json!({
-                    "error": "Error saving to database"
-                })))
-                }
+
+                Ok(_) => susses_json( json!({ "message": "Photo added successfully", "url": url_path})),
+
+                Err(_) => un_success_json(
+                    "Error al guardar en base de datos",
+                    Some("No se pudo guardar el archivo en el sistema debido a un error en la base de datos")
+                )
             }
         }
 
-        Ok(HttpResponse::BadRequest().json(json!({
-        "error": "No file provided"
-    })))
+        un_success_json(
+            "Error en la solicitud",
+            Some("No se proporcionó ningún archivo")
+        )
+
     }
 
     pub async fn get_activity_photos(conn: Data<AppState>, activity_id: String) -> impl Responder {
@@ -231,32 +219,26 @@ WHERE p.user_id = $1;"#)
             .bind(activity_id)
             .fetch_all(&conn.db)
             .await {
-            Ok(photos) => HttpResponse::Ok().json(photos),
-            Err(e) => {
-                log::error!("Error getting photos: {:?}", e);
-                HttpResponse::InternalServerError().json(format!("Error: {:?}", e))
-            }
+            Ok(photos) => susses_json(photos),
+            Err(e) => un_success_json(
+                "Error al obtener fotos",
+                Some("No se pudieron recuperar las fotos del sistema")
+            )
         }
     }
 
-    pub async fn delete_photo(
-        conn: Data<AppState>,
-        activity_id: String,
-        photo_id: i32
-    ) -> impl Responder {
-        match sqlx::query(
-            "DELETE FROM activity_photos WHERE activity_id = $1 AND id = $2"
-        )
+    pub async fn delete_photo( conn: Data<AppState>,  activity_id: String,  photo_id: i32 ) -> impl Responder {
+
+        match sqlx::query(r#"DELETE FROM activity_photos WHERE activity_id = $1 AND id = $2"#)
             .bind(activity_id)
             .bind(photo_id)
             .execute(&conn.db)
             .await {
-            Ok(_) => HttpResponse::Ok().json("Photo deleted successfully"),
-            Err(e) => {
-                log::error!("Error deleting photo: {:?}", e);
-                HttpResponse::InternalServerError().json(format!("Error: {:?}", e))
-            }
+            Ok(_) => susses_json("Photo deleted successfully"),
+            Err(_) => un_success_json("Error al eliminar foto",  Some("No se pudo eliminar la foto del sistema") )
+
         }
+
     }
     
     
