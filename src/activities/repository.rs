@@ -6,7 +6,7 @@ use actix_web::{HttpResponse, Responder, web::Data};
 use futures::{StreamExt, TryStreamExt};
 use serde_json::json;
 use uuid::Uuid;
-use crate::helper::response::{susses_json, un_susses_json};
+use crate::helper::email_service_helper::{susses_json, un_susses_json};
 use crate::model::AppState;
 use super::models::{Activities, ActivityFilter, NewPhoto, PhotoActivity, UpdateActivityStatus};
 

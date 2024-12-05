@@ -7,7 +7,7 @@ use chrono::{NaiveDateTime, Utc};
 use uuid::Uuid;
 use crate::activities::models::Activities;
 use crate::auth::env::hash_secret;
-use crate::helper::response::{send_email, susses, susses_json, un_susses};
+use crate::helper::email_service_helper::{send_email, susses, susses_json, un_susses};
 use crate::model::AppState;
 use super::models::{UserModel, UpdateUser, UpdateUserNotifications, UpdateUserPassword, UpdateUserStatus, UserFilters, Users};
 
