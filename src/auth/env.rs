@@ -23,6 +23,8 @@ pub async fn validate_jwt(req: ServiceRequest, credentials: BearerAuth) -> Resul
 
     match claims {
         Ok(value) => {
+
+
             let is_jwt_expired = value.expire_at < date_time_epoc(0);
 
             if is_jwt_expired {
@@ -32,6 +34,49 @@ pub async fn validate_jwt(req: ServiceRequest, credentials: BearerAuth) -> Resul
                 req.extensions_mut().insert(value);
                 Ok(req)
             }
+        }
+
+        Err(err) => {
+            log::error!("{}", err);
+            Err((AuthenticationError::from(config).into(), req))
+        }
+    }
+}
+
+
+pub async fn validate_jwt_admin(req: ServiceRequest, credentials: BearerAuth) -> Result<ServiceRequest, (Error, ServiceRequest)> {
+    let token_string = credentials.token();
+
+    let claims_admin: Result<JwtUserInfo, &str> = token_string
+        .verify_with_key(&jwt_key())
+        .map_err(|_| "Invalid token");
+
+    let config = req.app_data::<bearer::Config>()
+        .cloned()
+        .unwrap_or_default()
+        .scope("Error on create validate request.");
+
+    match claims_admin {
+        Ok(value) => {
+
+            if value.position == "developer_admin"{
+                let is_jwt_admin_expired = value.expire_at < date_time_epoc(0);
+
+                if is_jwt_admin_expired {
+
+                    log::error!("IS JWT EXPIRED? {}", is_jwt_admin_expired);
+                    Err((AuthenticationError::from(config).into(), req))
+
+                } else {
+
+                    req.extensions_mut().insert(value);
+                    Ok(req)
+                }
+
+            }else {
+                Err((AuthenticationError::from(config).into(), req))
+            }
+
         }
 
         Err(err) => {

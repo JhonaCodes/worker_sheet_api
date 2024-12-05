@@ -6,7 +6,7 @@ use actix_web::{HttpResponse, Responder, web::Data};
 use futures::{StreamExt, TryStreamExt};
 use serde_json::json;
 use uuid::Uuid;
-use crate::helper::email_service_helper::{susses_json, un_susses_json};
+use crate::helper::email_service_helper::{susses_json, un_success_json};
 use crate::model::AppState;
 use super::models::{Activities, ActivityFilter, NewPhoto, PhotoActivity, UpdateActivityStatus};
 
@@ -71,10 +71,7 @@ WHERE p.user_id = $1;"#)
             .await
         {
             Ok(activity_list)=> susses_json(activity_list),
-            Err(err)=>{
-                println!("Error: {}", err);
-                return un_susses_json("Error al llamar actividades");
-            }
+            Err(_)=> un_success_json("Error al llamar actividades", Some("No se pudo encontrar actividades relacionadas."))
         }
     }
 
