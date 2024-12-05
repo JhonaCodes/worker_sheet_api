@@ -1,5 +1,5 @@
 use std::fs;
-use std::io::Write;
+use std::io::{BufWriter, Write};
 use std::path::Path;
 use actix_multipart::Multipart;
 use actix_web::{HttpResponse, Responder, web::Data};
@@ -158,36 +158,43 @@ WHERE p.user_id = $1;"#)
         }
     }
 
-    pub async fn add_photo( conn: Data<AppState>, activity_id: Uuid,  mut payload: Multipart ) -> impl Responder {
-        // Asegurarse de que el directorio existe
-        fs::create_dir_all("/app/uploads").map_err(|e| {
+    pub async fn add_photo(conn: Data<AppState>, activity_id: Uuid, mut payload: Multipart) -> impl Responder {
+        if let Err(e) = fs::create_dir_all("/app/uploads") {
             log::error!("Error creating directory: {:?}", e);
-            actix_web::error::ErrorInternalServerError("Failed to create directory")
-        }).unwrap();
+            return un_success_json(
+                "Error creando directorio",
+                Some("No se pudo crear el directorio de uploads")
+            );
+        }
 
-        while let Some(mut field) = payload.try_next().await {
-            // Generar nombre único para el archivo
+        while let Ok(Some(mut field)) = payload.try_next().await {
             let file_name = format!("{}.jpg", Uuid::new_v4());
             let file_path = format!("/app/uploads/{}", file_name);
             let url_path = format!("/uploads/{}", file_name);
 
-            log::info!("Saving file: {}", file_path);
+            let file = match fs::File::create(&file_path) {
+                Ok(f) => f,
+                Err(e) => {
+                    log::error!("Error creating file: {:?}", e);
+                    return un_success_json(
+                        "Error creando archivo",
+                        Some("No se pudo crear el archivo")
+                    );
+                }
+            };
 
-            // Crear y escribir el archivo
-            let mut file = fs::File::create(&file_path).map_err(|e| {
-                log::error!("Error creating file: {:?}", e);
-                actix_web::error::ErrorInternalServerError("Failed to create file")
-            }).unwrap();
+            let mut file = BufWriter::new(file);
 
-            // Procesar el archivo por chunks
-            while let Some(chunk) = field.try_next().await {
-                file.write_all(&chunk).map_err(|e| {
+            while let Ok(Some(chunk)) = field.try_next().await {
+                if let Err(e) = file.write_all(&chunk) {
                     log::error!("Error writing file: {:?}", e);
-                    actix_web::error::ErrorInternalServerError("Failed to write file")
-                }).unwrap();
+                    return un_success_json(
+                        "Error escribiendo archivo",
+                        Some("No se pudo escribir el archivo")
+                    );
+                }
             }
 
-            // Guardar en base de datos
             return match sqlx::query(
                 "INSERT INTO activity_photos (activity_id, url) VALUES ($1, $2)"
             )
@@ -195,21 +202,18 @@ WHERE p.user_id = $1;"#)
                 .bind(&url_path)
                 .execute(&conn.db)
                 .await {
-
-                Ok(_) => susses_json( json!({ "message": "Photo added successfully", "url": url_path})),
-
+                Ok(_) => susses_json(json!({ "message": "Photo added successfully", "url": url_path})),
                 Err(_) => un_success_json(
                     "Error al guardar en base de datos",
                     Some("No se pudo guardar el archivo en el sistema debido a un error en la base de datos")
                 )
-            }
+            };
         }
 
         un_success_json(
             "Error en la solicitud",
             Some("No se proporcionó ningún archivo")
         )
-
     }
 
     pub async fn get_activity_photos(conn: Data<AppState>, activity_id: String) -> impl Responder {
