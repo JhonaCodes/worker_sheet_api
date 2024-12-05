@@ -2,7 +2,7 @@ use actix_web::{HttpResponse, Responder};
 use actix_web::web::{Data, Json};
 
 use uuid::Uuid;
-use crate::helper::email_service_helper::{susses_json, un_susses_json};
+use crate::helper::email_service_helper::{susses_json, un_success_json};
 use crate::model::AppState;
 use crate::participants::models::ParticipantsModel;
 
@@ -19,14 +19,11 @@ impl ParticipantsRepository {
             .execute(&conn.db)
             .await
         {
-            Ok(_) => {
-
-                HttpResponse::Created().json("User created successfully")
-            },
-            Err(e) => {
-                println!("Error {}", e);
-                HttpResponse::InternalServerError().json("Error al asignar participante.")
-            }
+            Ok(_) => susses_json("User created successfully"),
+            Err(_) => un_success_json(
+                "ParticipantAssignmentError",
+                Some("Ha ocurrido un error al intentar asignar el participante. Por favor, inténtalo nuevamente más tarde")
+            )
         }
     }
 
@@ -40,7 +37,10 @@ impl ParticipantsRepository {
             Err(err)=>{
                 println!("Error {}", err);
 
-                return  un_susses_json("Error al llamar participanes.");
+                return un_success_json(
+                    "ParticipantFetchError",
+                    Some("Ocurrió un error al obtener la lista de participantes. Por favor, inténtalo nuevamente")
+                );
             }
         }
     }
@@ -54,7 +54,10 @@ impl ParticipantsRepository {
             Ok(participant_list) => susses_json(participant_list),
             Err(err) => {
                 println!("Error {}", err);
-                return un_susses_json("Error al llamar las actividades");
+                return un_success_json(
+                    "ActivityFetchError",
+                    Some("Ocurrió un error al obtener la lista de actividades. Por favor, inténtalo nuevamente")
+                );
             }
         }
     }

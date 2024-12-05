@@ -5,7 +5,7 @@ use jwt::SignWithKey;
 use serde_json::json;
 use crate::auth::env::{date_time_epoc, hash_secret, jwt_key};
 use crate::auth::models::{JwtUserInfo, LoginProfileModel, ResponseProfileModel};
-use crate::helper::email_service_helper::{susses_json, un_susses};
+use crate::helper::email_service_helper::{susses_json, un_success_json};
 use crate::helper::validation_helper::ValidateHelper;
 use crate::model::AppState;
 use crate::user::models::UserModel;
@@ -23,11 +23,17 @@ impl AuthRepository {
             Ok(user) => {
 
                 if user.status == "deleted" {
-                    return un_susses("Usuario eliminado");
+                    return un_success_json(
+                        "Deleted User Error",
+                        Some("No es posible acceder a esta cuenta porque ha sido eliminada")
+                    );
                 }
-              
-                if !ValidateHelper::is_valid_email(&user.email){
-                   return un_susses("Al parecer, nuestro sistema detectó un error con sus datos.");
+
+                if !ValidateHelper::is_valid_email(&user.email) {
+                    return un_success_json(
+                        "InvalidEmailError",
+                        Some("El formato del correo electrónico no es válido")
+                    );
                 }
 
                 let password_clone = user.password_hash.clone();
@@ -73,10 +79,16 @@ impl AuthRepository {
 
                     susses_json(response_user)
                 } else {
-                    un_susses("Incorrect username or password")
+                    un_success_json(
+                        "AuthenticationError",
+                        Some("Las credenciales proporcionadas son incorrectas. Por favor, verifica tu usuario y contraseña")
+                    )
                 }
             }
-            Err(_) =>  un_susses("Incorrect username or password")
+            Err(_) => un_success_json(
+                "AuthenticationError",
+                Some("Las credenciales proporcionadas son incorrectas. Por favor, verifica tu usuario y contraseña")
+            )
         }
     }
 

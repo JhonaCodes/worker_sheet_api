@@ -9,6 +9,7 @@ mod helper;
 mod participants;
 mod service;
 mod logs;
+mod handler;
 
 use crate::env::models::AppConfig;
 use actix_web::{web, App, HttpServer};
@@ -68,12 +69,14 @@ async fn main() -> Result<()> {
             // .configure(config_log)
             .wrap( config_cors() )
             .app_data(app_state.clone())
-            .configure(config_server_state)
             .configure(config_static_pages)
             .configure(config_auth)
             .configure(config_crud_users)
             .service(web::scope("/v1")
-                .service(web::scope("/admin").wrap(jwt_bearer_admin.clone()).service(get_system_logs))
+                .service(web::scope("/admin").wrap(jwt_bearer_admin.clone())
+                    .service(get_system_logs)
+                    .configure(config_server_state)
+                )
                 //.service(Files::new("/uploads", "/app/uploads"))
                 .wrap(jwt_bearer_middleware.clone())
                 .service(get_users)

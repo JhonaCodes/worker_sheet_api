@@ -47,8 +47,3 @@ pub fn config_server_state(cfg: &mut web::ServiceConfig) {
 pub fn config_crud_users(cfg: &mut web::ServiceConfig) {
     cfg.service(web::scope("/register").service(create_user));
 }
-
-pub fn config_admin(cfg: &mut web::ServiceConfig) {
-
-    cfg.service(web::scope("/admin").wrap(HttpAuthentication::bearer(validate_jwt_admin).clone()).service(get_system_logs));
-}

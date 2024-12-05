@@ -5,30 +5,21 @@ use crate::helper::models::MessageResponse;
 use lettre::transport::smtp::authentication::Credentials;
 use lettre::{Message, SmtpTransport, Transport};
 use lettre::message::{ MultiPart, SinglePart};
+use crate::handler::model::{ApiResponse};
 
 pub fn string(text:&str) -> String{
     return String::from(text);
-}
-
-pub fn susses(message: &str ) -> HttpResponse{
-    return HttpResponse::Ok().json(MessageResponse::susses(string(message)));
 }
 
 pub fn susses_json<T: Serialize>(body: T) -> HttpResponse{
     return HttpResponse::Ok().json(body)
 }
 
-pub fn un_susses( message: &str) -> HttpResponse{
-    return HttpResponse::Forbidden().json(MessageResponse::error( string(message)));
+pub fn un_success_json<T: Serialize>( message: &str, data: Option<T>) -> HttpResponse {
+    let response = ApiResponse::new(message, data);
+    HttpResponse::BadRequest().json(response)
 }
 
-pub fn un_susses_json<T: Serialize>(body: T) -> HttpResponse{
-    return HttpResponse::Forbidden().json(body);
-}
-
-pub fn some_string(text:&str) -> Option<String> {
-   return Some(string(text));
-}
 
 pub fn  send_email(user_email:&String) -> Result<bool, Box<dyn std::error::Error>> {
 
