@@ -165,7 +165,7 @@ WHERE p.user_id = $1;"#)
             actix_web::error::ErrorInternalServerError("Failed to create directory")
         }).unwrap();
 
-        while let Some(mut field) = payload.try_next().await? {
+        while let Some(mut field) = payload.try_next().await {
             // Generar nombre único para el archivo
             let file_name = format!("{}.jpg", Uuid::new_v4());
             let file_path = format!("/app/uploads/{}", file_name);
@@ -180,7 +180,7 @@ WHERE p.user_id = $1;"#)
             }).unwrap();
 
             // Procesar el archivo por chunks
-            while let Some(chunk) = field.try_next().await? {
+            while let Some(chunk) = field.try_next().await {
                 file.write_all(&chunk).map_err(|e| {
                     log::error!("Error writing file: {:?}", e);
                     actix_web::error::ErrorInternalServerError("Failed to write file")
