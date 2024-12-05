@@ -163,7 +163,7 @@ WHERE p.user_id = $1;"#)
         fs::create_dir_all("/app/uploads").map_err(|e| {
             log::error!("Error creating directory: {:?}", e);
             actix_web::error::ErrorInternalServerError("Failed to create directory")
-        })?;
+        }).unwrap();
 
         while let Some(mut field) = payload.try_next().await? {
             // Generar nombre único para el archivo
