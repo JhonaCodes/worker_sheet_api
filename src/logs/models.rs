@@ -1,8 +1,5 @@
-use std::sync::Mutex;
-use chrono::Utc;
 use serde::Serialize;
-use lazy_static::lazy_static;
-use std::collections::VecDeque;
+use std::collections::{HashMap};
 
 #[derive(Clone, Serialize)]
 pub struct LogEntry {
@@ -11,6 +8,10 @@ pub struct LogEntry {
     pub message: String,
     pub path: String,
     pub method: Option<String>,
-    pub ip: Option<String>,
     pub status: Option<u16>,
+    pub ip: Option<String>,
+    pub response_time_ms: Option<u128>,
+    pub user_agent: Option<String>,
+    pub error_detail: Option<String>,
+    pub headers: Option<HashMap<String, String>>
 }
