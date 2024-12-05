@@ -3,8 +3,11 @@ use actix_cors::Cors;
 use actix_web::http::header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE};
 use actix_web::http::Method;
 use actix_web::web;
+use actix_web_httpauth::middleware::HttpAuthentication;
+use crate::auth::env::validate_jwt_admin;
 use crate::auth::service::{basic_auth, jwt_profile_validate, refresh_token};
 use crate::helper::service::health_revision;
+use crate::logs::service::get_system_logs;
 use crate::r#static::service::{api_doc_page, index_page};
 use crate::user::service::create_user;
 
@@ -43,4 +46,9 @@ pub fn config_server_state(cfg: &mut web::ServiceConfig) {
 
 pub fn config_crud_users(cfg: &mut web::ServiceConfig) {
     cfg.service(web::scope("/register").service(create_user));
+}
+
+pub fn config_admin(cfg: &mut web::ServiceConfig) {
+
+    cfg.service(web::scope("/admin").wrap(HttpAuthentication::bearer(validate_jwt_admin).clone()).service(get_system_logs));
 }

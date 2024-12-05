@@ -21,7 +21,7 @@ use actix_web::web::{Data};
 use actix_web_httpauth::middleware::HttpAuthentication;
 use sqlx::postgres::PgPoolOptions;
 use crate::activities::service::{add_photo, create_activity, delete_activity, delete_photo, get_activity, get_activity_list_by_user_id, get_photos, list_activities, update_activity, update_activity_status};
-use crate::auth::env::validate_jwt;
+use crate::auth::env::{validate_jwt, validate_jwt_admin};
 use crate::db::url_database;
 use crate::logs::middlewares;
 use crate::logs::service::{config_log, get_system_logs};
@@ -47,6 +47,7 @@ async fn main() -> Result<()> {
 
 
     let jwt_bearer_middleware = HttpAuthentication::bearer(validate_jwt);
+    let jwt_bearer_admin = HttpAuthentication::bearer(validate_jwt_admin);
 
     
     // Rules for initialize app state.
@@ -64,7 +65,7 @@ async fn main() -> Result<()> {
         App::new()
            // .wrap(Logger::default())
             .wrap(middlewares::RequestLogger)
-            .configure(config_log)
+            // .configure(config_log)
             .wrap( config_cors() )
             .app_data(app_state.clone())
             .configure(config_server_state)
@@ -72,6 +73,7 @@ async fn main() -> Result<()> {
             .configure(config_auth)
             .configure(config_crud_users)
             .service(web::scope("/v1")
+                .service(web::scope("/admin").wrap(jwt_bearer_admin.clone()).service(get_system_logs))
                 //.service(Files::new("/uploads", "/app/uploads"))
                 .wrap(jwt_bearer_middleware.clone())
                 .service(get_users)
@@ -93,6 +95,7 @@ async fn main() -> Result<()> {
                 .service(get_participants_by_activity_id)
                 .service(get_activities_by_participant_id)
                 .service(get_activity_list_by_user_id)
+
             )
             
 
