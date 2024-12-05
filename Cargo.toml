@@ -45,3 +45,4 @@ lettre = "0.11.10"
 
 #Test
 actix-rt = "2.10.0"
+regex = "1.11.1"

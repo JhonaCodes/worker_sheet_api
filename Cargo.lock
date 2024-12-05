@@ -3946,6 +3946,7 @@ dependencies = [
  "jwt",
  "lettre",
  "log",
+ "regex",
  "serde",
  "serde_json",
  "sha2",

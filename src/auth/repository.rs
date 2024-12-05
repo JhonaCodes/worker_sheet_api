@@ -5,7 +5,8 @@ use jwt::SignWithKey;
 use serde_json::json;
 use crate::auth::env::{date_time_epoc, hash_secret, jwt_key};
 use crate::auth::models::{JwtUserInfo, LoginProfileModel, ResponseProfileModel};
-use crate::helper::response::{susses_json, un_susses};
+use crate::helper::email_service_helper::{susses_json, un_susses};
+use crate::helper::validation_helper::ValidateHelper;
 use crate::model::AppState;
 use crate::user::models::UserModel;
 
@@ -20,11 +21,20 @@ impl AuthRepository {
             .fetch_one(&state.db).await
         {
             Ok(user) => {
+
                 if user.status == "deleted" {
                     return un_susses("Usuario eliminado");
                 }
+              
+                if ValidateHelper::is_valid_email(&user.email){
+                   return un_susses("Al parecer, nuestro sistema detectó un error con sus datos.");
+                }
 
                 let password_clone = user.password_hash.clone();
+
+
+
+
 
                 let is_valid = Verifier::default()
                     .with_hash(password_clone)
