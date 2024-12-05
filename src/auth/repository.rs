@@ -94,6 +94,6 @@ impl AuthRepository {
 
 
     pub async fn check_jwt() -> impl Responder {
-        susses_json(true);
+       return susses_json(true);
     }
 }
