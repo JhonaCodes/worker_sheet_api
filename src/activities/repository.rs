@@ -177,14 +177,14 @@ WHERE p.user_id = $1;"#)
             let mut file = fs::File::create(&file_path).map_err(|e| {
                 log::error!("Error creating file: {:?}", e);
                 actix_web::error::ErrorInternalServerError("Failed to create file")
-            })?;
+            }).unwrap();
 
             // Procesar el archivo por chunks
             while let Some(chunk) = field.try_next().await? {
                 file.write_all(&chunk).map_err(|e| {
                     log::error!("Error writing file: {:?}", e);
                     actix_web::error::ErrorInternalServerError("Failed to write file")
-                })?;
+                }).unwrap();
             }
 
             // Guardar en base de datos
