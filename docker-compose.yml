@@ -4,7 +4,7 @@ version: '3.8'
 services:
   db:
     container_name: database_prod
-    image: postgres:15
+    image: postgres:15-alpine
     ports:
       - "${DATABASE_PORT}:5432"
     env_file: ${ENV_FILE:-.env}  # Usa .env por defecto
@@ -27,7 +27,7 @@ services:
 
   db_dev:
     container_name: database_dev
-    image: postgres:15
+    image: postgres:15-alpine
     ports:
       - "${DATABASE_PORT}:5432"  # Puerto diferente para desarrollo
     env_file: dev.env
