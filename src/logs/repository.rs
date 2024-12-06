@@ -86,7 +86,7 @@ pub fn write_log_to_file(log_entry: &LogEntry) {
 
 fn rotate_if_needed(filename: &str) {
     let path = Path::new(filename);
-    if let Ok(metadata) = std::fs::metadata(path) {
+    if let Ok(_) = std::fs::metadata(path) {
         let line_count = std::io::BufReader::new(File::open(path).unwrap())
             .lines()
             .count();

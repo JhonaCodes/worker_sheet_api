@@ -25,7 +25,7 @@ pub struct JwtUserInfo {
 /// Implementation for use a [AuthProfileModel] to create JWT from [JwtProfileModel].
 impl JwtUserInfo {
     pub fn from_auth_user_model(user: &UserModel, expire: i64) -> JwtUserInfo {
-        return JwtUserInfo {
+        JwtUserInfo {
             id: user.id,
             first_name: user.first_name.clone(),
             last_name: user.last_name.clone(),
@@ -39,7 +39,7 @@ impl JwtUserInfo {
             hash_sync: user.hash_sync.clone().unwrap(),
             expire_at: expire,
             created_at: None,
-        };
+        }
     }
 }
 

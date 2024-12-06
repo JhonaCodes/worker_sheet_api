@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use crate::activities::models::{Activities, ActivityFilter, PhotoActivity, UpdateActivityStatus, NewPhoto};
-    use chrono::{NaiveDateTime, Utc};
+    use chrono::{Utc};
     use uuid::Uuid;
 
     // Helper function para crear una actividad válida

@@ -16,21 +16,16 @@ use actix_web::{web, App, HttpServer};
 use dotenvy::dotenv;
 
 use std::io::Result;
-use actix_cors::Cors;
-use actix_files::Files;
-use actix_web::middleware::Logger;
 use actix_web::web::{Data};
 use actix_web_httpauth::middleware::HttpAuthentication;
 use sqlx::postgres::PgPoolOptions;
-use crate::activities::service::{add_photo, create_activity, delete_activity, delete_photo, get_activity, get_activity_list_by_user_id, get_photos, list_activities, update_activity, update_activity_status};
 use crate::auth::env::{validate_jwt, validate_jwt_admin};
 use crate::db::url_database;
 use crate::logs::middlewares;
-use crate::logs::service::{config_log, get_system_logs};
+use crate::logs::service::{get_system_logs};
 use crate::model::AppState;
-use crate::participants::service::{create_participant, get_activities_by_participant_id, get_participants_by_activity_id};
+
 use crate::service::{config_auth, config_cors, config_signup_users, config_server_state, config_static_pages, config_upload_files, config_crud_users, config_crud_activities, config_participants};
-use crate::user::service::{ delete_user, get_users, update_user, update_user_notifications, update_user_password, update_user_status};
 
 #[actix_web::main]
 async fn main() -> Result<()> {
