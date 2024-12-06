@@ -22,15 +22,12 @@ jobs:
     container:
       image: xd009642/tarpaulin
       options: --security-opt seccomp=unconfined
-
     steps:
       - uses: actions/checkout@v4
-
       - name: Install dependencies
         run: |
           apt-get update
           apt-get install -y libpq-dev postgresql-client libclang-dev libargon2-dev
-
       - name: Run tests and generate coverage
         run: cargo tarpaulin --verbose --workspace --timeout 120 --out Xml
 
@@ -41,13 +38,14 @@ jobs:
     permissions:
       contents: read
       packages: write
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - name: Clean Docker credentials
+        run: |
+          docker logout docker.pkg.github.com || true
+          rm -rf ~/.docker/config.json || true
 
       - name: Log in to GitHub Packages
         uses: docker/login-action@v3
@@ -78,28 +76,15 @@ jobs:
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Set up SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deployment_key
-          chmod 600 ~/.ssh/deployment_key
-          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
 
       - name: Deploy to VPS
-        env:
-          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         run: |
-          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
-          ssh-add ~/.ssh/deployment_key
+          echo "${{ secrets.VPS_SSH_KEY }}" > ssh_key
+          chmod 600 ssh_key
+          mkdir -p ~/.ssh
+          ssh-keyscan -v -p 22 ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
 
-          # Debug: Verify SSH connection
-          ssh -v -i ~/.ssh/deployment_key ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "echo 'SSH connection successful'"
-
-          # Create .env file
-          ssh -i ~/.ssh/deployment_key ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "cat > ~/.env << EOF
+          ssh -i ssh_key ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "cat > .env << EOF
           APP_ENV=prod
           DATABASE_MAX_CONNECTIONS=${{ env.DATABASE_MAX_CONNECTIONS }}
           DATABASE_MIN_CONNECTIONS=${{ env.DATABASE_MIN_CONNECTIONS }}
@@ -123,40 +108,23 @@ jobs:
           SMTP_SERVER_PORT=${{ secrets.SMTP_SERVER_PORT }}
           EOF"
 
-          # Copy docker-compose
-          scp -i ~/.ssh/deployment_key docker-compose.yml ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }}:~/docker-compose.yml
+          scp -i ssh_key docker-compose.yml ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }}:~/docker-compose.yml
 
-          # Deployment script with comprehensive error handling
-          ssh -i ~/.ssh/deployment_key ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} '
-            set -e
-          
-            # Ensure docker and docker-compose are installed
-            if ! command -v docker &> /dev/null; then
-              echo "Docker is not installed"
-              exit 1
-            fi
+          ssh -i ssh_key ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "\
+            if ! command -v docker-compose &> /dev/null; then \
+              sudo apt-get update && \
+              sudo apt-get install -y docker-compose-plugin && \
+              sudo ln -s /usr/libexec/docker/cli-plugins/docker-compose /usr/local/bin/docker-compose; \
+            fi"
 
-            # Login to GitHub Packages
-            echo "${{ secrets.G_TOKEN }}" | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
-
-            # Stop and remove existing containers
-            docker stop api_prod database_prod || true
-            docker rm api_prod database_prod || true
-
-            # Pull latest image
-            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-
-            # Clean up old images
-            docker image prune -f
-
-            # Deploy with docker-compose
-            docker compose -f ~/docker-compose.yml --profile prod up -d
-          '
-
-      - name: Deployment Verification
-        run: |
-          sleep 30  # Wait for containers to start
-          ssh -i ~/.ssh/deployment_key ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} '
-            docker ps
-            docker logs api_prod
-          '
+          ssh -i ssh_key ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "\
+            docker logout docker.pkg.github.com || true && \
+            rm -rf ~/.docker/config.json || true && \
+            echo ${{ secrets.G_TOKEN }} | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin && \
+            docker stop worker_sheet_container db || true && \
+            docker rm worker_sheet_container db || true && \
+            docker stop api_prod database_prod || true && \
+            docker rm api_prod database_prod || true && \
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest && \
+            docker image prune -f && \
+            docker compose -f docker-compose.yml --profile prod up -d"
