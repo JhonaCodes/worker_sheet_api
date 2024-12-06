@@ -17,6 +17,7 @@ use dotenvy::dotenv;
 
 use std::io::Result;
 use actix_cors::Cors;
+use actix_files::Files;
 use actix_web::middleware::Logger;
 use actix_web::web::{Data};
 use actix_web_httpauth::middleware::HttpAuthentication;
@@ -77,7 +78,7 @@ async fn main() -> Result<()> {
                     .service(get_system_logs)
                     .configure(config_server_state)
                 )
-                //.service(Files::new("/uploads", "/app/uploads"))
+                .service(Files::new("/uploads", "/app/uploads"))
                 .wrap(jwt_bearer_middleware.clone())
                 .service(get_users)
                 .service(update_user)
