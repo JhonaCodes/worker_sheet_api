@@ -89,7 +89,7 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_KEY }}
         run: |
           # Configurar SSH
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          echo ${{SSH_PRIVATE_KEY}} > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           mkdir -p ~/.ssh
           ssh-keyscan -v -p 22 ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
