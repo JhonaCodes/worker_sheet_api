@@ -178,6 +178,247 @@ cargo build --release
   - DB Desarrollo: 5434
   - DB Producción: 5432
 
+# Configuración Automatizada de Nginx con Seguridad
+
+## Descripción
+Este repositorio contiene la documentación y scripts para configurar automáticamente Nginx con seguridad mejorada, incluyendo protección DDoS y Fail2ban.
+
+## Contenido
+1. Script de instalación y configuración
+2. Documentación de la configuración
+3. Guía de solución de problemas
+
+## Script de Instalación
+Guarda este script como `setup-nginx-security.sh`:
+
+```bash
+#!/bin/bash
+
+# Variables
+DOMAIN="workersheet.com"
+EMAIL="info@calely.com"
+
+# Función para mostrar mensajes
+log_message() {
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1"
+}
+
+# Actualizar sistema
+log_message "Actualizando sistema..."
+sudo apt update
+sudo apt upgrade -y
+
+# Instalar dependencias
+log_message "Instalando dependencias..."
+sudo apt install -y nginx certbot python3-certbot-nginx fail2ban
+
+# Backup de configuraciones existentes
+log_message "Creando backups..."
+sudo cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.backup
+[ -f /etc/fail2ban/jail.local ] && sudo cp /etc/fail2ban/jail.local /etc/fail2ban/jail.local.backup
+
+# Configurar Nginx para HTTP inicial
+log_message "Configurando Nginx inicial..."
+sudo cat > /etc/nginx/sites-available/default << EOL
+server {
+    listen 80;
+    listen [::]:80;
+    server_name ${DOMAIN} www.${DOMAIN};
+    
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host \$host;
+        proxy_cache_bypass \$http_upgrade;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_read_timeout 90;
+    }
+}
+EOL
+
+# Configurar protección DDoS
+log_message "Configurando protección DDoS..."
+sudo cat > /etc/nginx/conf.d/ddos-protection.conf << 'EOL'
+# Define zonas de limitación
+limit_req_zone $binary_remote_addr zone=one:10m rate=30r/m;
+limit_conn_zone $binary_remote_addr zone=addr:10m;
+
+# Configuración de buffer y timeouts
+client_max_body_size 10m;
+client_body_buffer_size 128k;
+client_header_buffer_size 1k;
+large_client_header_buffers 4 4k;
+client_body_timeout 60s;
+client_header_timeout 60s;
+send_timeout 60s;
+
+# Configuración de FastCGI
+fastcgi_read_timeout 600s;
+fastcgi_send_timeout 600s;
+fastcgi_connect_timeout 600s;
+fastcgi_buffer_size 256k;
+fastcgi_buffers 8 256k;
+fastcgi_busy_buffers_size 256k;
+
+# Configuración de seguridad
+server_tokens off;
+add_header X-XSS-Protection "1; mode=block";
+add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';" always;
+add_header X-Frame-Options "SAMEORIGIN" always;
+add_header X-Content-Type-Options "nosniff" always;
+add_header Referrer-Policy "strict-origin-source" always;
+add_header Permissions-Policy "geolocation=(), microphone=(), camera=()" always;
+
+# Limitar conexiones y peticiones
+limit_req zone=one burst=5 nodelay;
+limit_conn addr 10;
+EOL
+
+# Configurar Fail2ban
+log_message "Configurando Fail2ban..."
+sudo cat > /etc/fail2ban/jail.local << 'EOL'
+[DEFAULT]
+bantime = 7200
+findtime = 600
+maxretry = 100
+ignoreip = 127.0.0.1/8, ::1
+
+[nginx-req-limit]
+enabled = true
+filter = nginx-req-limit
+action = iptables-multiport[name=ReqLimit, port="http,https"]
+logpath = /var/log/nginx/error.log
+bantime = 7200
+findtime = 600
+maxretry = 100
+
+[nginx-bad-bot]
+enabled = true
+filter = nginx-bad-bot
+action = iptables-multiport[name=BadBot, port="http,https"]
+logpath = /var/log/nginx/access.log
+bantime = 7200
+findtime = 600
+maxretry = 50
+EOL
+
+# Crear filtros de Fail2ban
+log_message "Creando filtros de Fail2ban..."
+sudo cat > /etc/fail2ban/filter.d/nginx-req-limit.conf << 'EOL'
+[Definition]
+failregex = limiting requests, excess:.* by zone.*client: <HOST>
+ignoreregex =
+EOL
+
+sudo cat > /etc/fail2ban/filter.d/nginx-bad-bot.conf << 'EOL'
+[Definition]
+failregex = ^<HOST> .*(GET|POST).*(\.php|\.asp|\.exe|\.pl|\.cgi|\.scgi).*$
+            ^<HOST> .*(GET|POST).*(w00tw00t|phpMyAdmin|setup\.php|admin\.php).*$
+ignoreregex =
+EOL
+
+# Reiniciar servicios
+log_message "Reiniciando servicios..."
+sudo systemctl stop nginx
+sudo killall -9 nginx || true
+sudo rm -f /var/run/nginx.pid
+sudo systemctl start nginx
+sudo systemctl restart fail2ban
+
+# Obtener certificado SSL
+log_message "Obteniendo certificado SSL..."
+sudo certbot --nginx -d ${DOMAIN} -d www.${DOMAIN} --non-interactive --agree-tos -m ${EMAIL}
+
+# Habilitar renovación automática
+sudo systemctl enable certbot.timer
+sudo systemctl start certbot.timer
+
+# Verificación final
+log_message "Verificando configuración..."
+sudo nginx -t
+sudo fail2ban-client status
+
+log_message "Configuración completada. Tu sitio debería estar accesible en https://${DOMAIN}"
+log_message "Comandos útiles:"
+echo "fail2ban-client status                           # Ver estado general"
+echo "fail2ban-client status nginx-req-limit          # Ver IPs baneadas por rate limit"
+echo "fail2ban-client set nginx-req-limit unbanip IP  # Desbanear IP específica"
+echo "fail2ban-client unban --all                     # Desbanear todas las IPs"
+```
+
+## Instrucciones de Uso
+
+1. Crear el script:
+```bash
+nano setup-nginx-security.sh
+```
+
+2. Dar permisos de ejecución:
+```bash
+chmod +x setup-nginx-security.sh
+```
+
+3. Ejecutar el script:
+```bash
+./setup-nginx-security.sh
+```
+
+## Solución de Problemas
+
+Si encuentras problemas durante la instalación:
+
+1. Verificar que no hay servicios usando los puertos 80/443:
+```bash
+sudo netstat -tulpn | grep -E ':80|:443'
+```
+
+2. Verificar logs:
+```bash
+sudo tail -f /var/log/nginx/error.log
+sudo tail -f /var/log/fail2ban.log
+```
+
+3. Verificar estado de servicios:
+```bash
+sudo systemctl status nginx
+sudo systemctl status fail2ban
+```
+
+## Mantenimiento
+
+### Comandos Útiles
+
+#### Nginx:
+```bash
+sudo nginx -t                     # Verificar configuración
+sudo systemctl restart nginx      # Reiniciar Nginx
+sudo tail -f /var/log/nginx/*.log # Ver logs
+```
+
+#### Fail2ban:
+```bash
+sudo fail2ban-client status                  # Ver estado
+sudo fail2ban-client status nginx-req-limit  # Ver detalles de jail
+sudo fail2ban-client set nginx-req-limit unbanip IP  # Desbanear IP
+```
+
+## Notas de Seguridad
+- Revisa regularmente los logs en `/var/log/nginx/` y `/var/log/fail2ban.log`
+- Ajusta los valores de rate limiting según tus necesidades
+- Mantén actualizada la lista de IPs permitidas en fail2ban
+- Actualiza regularmente el sistema y los paquetes instalados
+
+## Respaldo
+Se recomienda hacer backups regulares de:
+- `/etc/nginx/`
+- `/etc/fail2ban/`
+- Certificados SSL en `/etc/letsencrypt/`
+
 ## 🔍 Diagnóstico de Problemas
 
 1. **La base de datos no inicia**
