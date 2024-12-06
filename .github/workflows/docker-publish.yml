@@ -37,10 +37,10 @@ jobs:
       - name: Run tests and generate coverage
         run: cargo tarpaulin --verbose --workspace --timeout 120 --out Xml
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+#      - name: Upload coverage to Codecov
+#        uses: codecov/codecov-action@v3
+#        env:
+#          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   build-and-push:
     needs: test-coverage
@@ -84,14 +84,16 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh  # Asegúrate de que la carpeta ~/.ssh existe
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_rsa  # Guarda la clave privada
+          chmod 600 ~/.ssh/id_rsa  # Asegúrate de que los permisos sean correctos
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts  # Añade la clave del VPS al archivo known_hosts
+
       - name: Deploy to VPS
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_KEY }}
         run: |
           # Configurar SSH
-          echo "$SSH_PRIVATE_KEY" > ssh_key
-          chmod 600 ssh_key
-          mkdir -p ~/.ssh
           ssh-keyscan -v -p 22 ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
 
           # Crear archivo .env en el servidor
