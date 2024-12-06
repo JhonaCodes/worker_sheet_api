@@ -82,7 +82,6 @@ async fn main() -> Result<()> {
                         .configure(config_participants),
                 )
                 // Necesita JWT para estos endpoints
-
             )
         },
     );
