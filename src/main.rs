@@ -27,6 +27,7 @@ use crate::model::AppState;
 
 use crate::service::{config_auth, config_cors, config_signup_users, config_server_state, config_static_pages, config_upload_files, config_crud_users, config_crud_activities, config_participants};
 
+
 #[actix_web::main]
 async fn main() -> Result<()> {
 

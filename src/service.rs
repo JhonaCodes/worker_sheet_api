@@ -3,9 +3,11 @@ use actix_files::Files;
 use actix_web::http::header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE};
 use actix_web::http::Method;
 use actix_web::web;
+
 use crate::activities::service::{add_photo, create_activity, delete_activity, delete_photo, get_activity, get_activity_list_by_user_id, get_photos, list_activities, update_activity, update_activity_status};
 use crate::auth::service::{basic_auth, jwt_profile_validate, refresh_token};
 use crate::helper::service::health_revision;
+
 use crate::participants::service::{create_participant, get_activities_by_participant_id, get_participants_by_activity_id};
 use crate::r#static::service::{api_doc_page, index_page};
 use crate::user::service::{create_user, delete_user, get_users, update_user, update_user_notifications, update_user_password, update_user_status};
