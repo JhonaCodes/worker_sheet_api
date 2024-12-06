@@ -29,7 +29,7 @@ use crate::logs::middlewares;
 use crate::logs::service::{config_log, get_system_logs};
 use crate::model::AppState;
 use crate::participants::service::{create_participant, get_activities_by_participant_id, get_participants_by_activity_id};
-use crate::service::{config_auth, config_cors, config_crud_users, config_server_state, config_static_pages};
+use crate::service::{config_auth, config_cors, config_signup_users, config_server_state, config_static_pages, config_upload_files, config_crud_users, config_crud_activities, config_participants};
 use crate::user::service::{ delete_user, get_users, update_user, update_user_notifications, update_user_password, update_user_status};
 
 #[actix_web::main]
@@ -71,35 +71,18 @@ async fn main() -> Result<()> {
             .wrap( config_cors() )
             .app_data(app_state.clone())
             .configure(config_static_pages)
-            .configure(config_auth)
-            .configure(config_crud_users)
-            .service(web::scope("/v1")
+            .service(web::scope("/api/v1")
                 .service(web::scope("/admin").wrap(jwt_bearer_admin.clone())
                     .service(get_system_logs)
                     .configure(config_server_state)
                 )
-                .service(Files::new("/uploads", "/app/uploads"))
+                .configure(config_auth)
+                .configure(config_signup_users)
                 .wrap(jwt_bearer_middleware.clone())
-                .service(get_users)
-                .service(update_user)
-                .service(update_user_status)
-                .service(update_user_notifications)
-                .service(update_user_password)
-                .service(delete_user)
-                .service(create_activity)
-                .service(get_activity)
-                .service(delete_activity)
-                .service(list_activities)
-                .service(update_activity)
-                .service(update_activity_status)
-                .service(add_photo)
-                .service(get_photos)
-                .service(delete_photo)
-                .service(create_participant)
-                .service(get_participants_by_activity_id)
-                .service(get_activities_by_participant_id)
-                .service(get_activity_list_by_user_id)
-
+                .configure(config_upload_files)
+                .configure(config_crud_users)
+                .configure(config_crud_activities)
+                .configure(config_participants)
             )
             
 
