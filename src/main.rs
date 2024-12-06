@@ -73,12 +73,16 @@ async fn main() -> Result<()> {
                     .service(get_system_logs)
                     .configure(config_server_state),
                 )
+                .service(
+                    scope("")
+                        .wrap(jwt_bearer_middleware.clone())
+                        .configure(config_upload_files)
+                        .configure(config_crud_users)
+                        .configure(config_crud_activities)
+                        .configure(config_participants),
+                )
                 // Necesita JWT para estos endpoints
-                .wrap(jwt_bearer_middleware.clone())
-                .configure(config_upload_files)
-                .configure(config_crud_users)
-                .configure(config_crud_activities)
-                .configure(config_participants),
+
             )
         },
     );
