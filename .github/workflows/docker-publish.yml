@@ -37,10 +37,10 @@ jobs:
       - name: Run tests and generate coverage
         run: cargo tarpaulin --verbose --workspace --timeout 120 --out Xml
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+#      - name: Upload coverage to Codecov
+#        uses: codecov/codecov-action@v3
+#        env:
+#          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   build-and-push:
     needs: test-coverage
