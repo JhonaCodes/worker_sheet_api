@@ -66,13 +66,13 @@ async fn main() -> Result<()> {
             .app_data(app_state.clone())
             .configure(config_static_pages)
             .service(scope("/api/v1")
+                .configure(config_signup_users)
+                .configure(config_auth)
                 .service(scope("/admin")
                     .wrap(jwt_bearer_admin.clone())
                     .service(get_system_logs)
                     .configure(config_server_state),
                 )
-                .configure(config_signup_users)
-                .configure(config_auth)
                 // Necesita JWT para estos endpoints
                 .wrap(jwt_bearer_middleware.clone())
                 .configure(config_upload_files)
