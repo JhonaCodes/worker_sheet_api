@@ -16,7 +16,7 @@ use actix_web::{web, App, HttpServer};
 use dotenvy::dotenv;
 
 use std::io::Result;
-use actix_web::web::{Data};
+use actix_web::web::{scope, Data};
 use actix_web_httpauth::middleware::HttpAuthentication;
 use sqlx::postgres::PgPoolOptions;
 use crate::auth::env::{validate_jwt, validate_jwt_admin};
@@ -61,28 +61,27 @@ async fn main() -> Result<()> {
     // Server configuration
     let server = HttpServer::new(move || {
         App::new()
-           // .wrap(Logger::default())
             .wrap(middlewares::RequestLogger)
-            // .configure(config_log)
-            .wrap( config_cors() )
+            .wrap(config_cors())
             .app_data(app_state.clone())
             .configure(config_static_pages)
-            .service(web::scope("/api/v1")
-                .service(web::scope("/admin").wrap(jwt_bearer_admin.clone())
-                    .service(get_system_logs)
-                    .configure(config_server_state)
-                )
-                .configure(config_auth)
+            .service(scope("/api/v1")
                 .configure(config_signup_users)
+                .configure(config_auth)
+                .service(scope("/admin")
+                    .wrap(jwt_bearer_admin.clone())
+                    .service(get_system_logs)
+                    .configure(config_server_state),
+                )
+                // Necesita JWT para estos endpoints
                 .wrap(jwt_bearer_middleware.clone())
                 .configure(config_upload_files)
                 .configure(config_crud_users)
                 .configure(config_crud_activities)
-                .configure(config_participants)
+                .configure(config_participants),
             )
-            
-
-    });
+        },
+    );
 
     println!(
         "Server running {}:{}",
