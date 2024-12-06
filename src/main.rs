@@ -73,7 +73,6 @@ async fn main() -> Result<()> {
                     .service(get_system_logs)
                     .configure(config_server_state),
                 )
-                // Necesita JWT para estos endpoints
                 .wrap(jwt_bearer_middleware.clone())
                 .configure(config_upload_files)
                 .configure(config_crud_users)
