@@ -1,4 +1,4 @@
-use actix_web::{HttpResponse, Responder};
+use actix_web::{Responder};
 use actix_web::web::{Data, Json};
 
 use uuid::Uuid;
@@ -34,14 +34,10 @@ impl ParticipantsRepository {
             .await
         {
             Ok(participants)=> susses_json(&participants) ,
-            Err(err)=>{
-                println!("Error {}", err);
-
-                return un_success_json(
-                    "Participant fetch error",
-                    Some("Ocurrió un error al obtener la lista de participantes. Por favor, inténtalo nuevamente")
-                );
-            }
+            Err(_)=> un_success_json(
+                "Participant fetch error",
+                Some("Ocurrió un error al obtener la lista de participantes. Por favor, inténtalo nuevamente")
+            )
         }
     }
 
@@ -52,13 +48,10 @@ impl ParticipantsRepository {
             .await
         {
             Ok(participant_list) => susses_json(participant_list),
-            Err(err) => {
-                println!("Error {}", err);
-                return un_success_json(
-                    "Activity fetch error",
-                    Some("Ocurrió un error al obtener la lista de actividades. Por favor, inténtalo nuevamente")
-                );
-            }
+            Err(_) => un_success_json(
+                "Activity fetch error",
+                Some("Ocurrió un error al obtener la lista de actividades. Por favor, inténtalo nuevamente")
+            )
         }
     }
 

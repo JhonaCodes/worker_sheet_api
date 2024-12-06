@@ -59,7 +59,7 @@ where
         if let Some(user_agent) = req.headers().get(header::USER_AGENT) {
             important_headers.insert("user_agent".to_string(), user_agent.to_str().unwrap_or("").to_string());
         }
-        if let Some(auth) = req.headers().get(header::AUTHORIZATION) {
+        if let Some(_) = req.headers().get(header::AUTHORIZATION) {
             important_headers.insert("authorization".to_string(), "**REDACTED**".to_string());
         }
         if let Some(content_type) = req.headers().get(header::CONTENT_TYPE) {

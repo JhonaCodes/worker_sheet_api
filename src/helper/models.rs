@@ -11,10 +11,10 @@ pub struct MessageResponse {
 
 impl MessageResponse{
     pub fn error(content: String) ->MessageResponse{
-        return MessageResponse{title:String::from("Error"),content }
+        MessageResponse{title:String::from("Error"),content }
     }
 
     pub fn susses(content: String)->MessageResponse{
-        return MessageResponse{title:String::from("Susses"),content}
+        MessageResponse{title:String::from("Susses"),content}
     }
 }

@@ -92,11 +92,11 @@ pub fn jwt_secret() -> String {
 
 /// Create a hash secret return on one place
 pub fn hash_secret() -> String {
-    return env::var("HASH_SECRET").expect("HASH_SECRET must be set!");
+    env::var("HASH_SECRET").expect("HASH_SECRET must be set!")
 }
 
 pub fn jwt_key()->Hmac<Sha256>{
-    return Hmac::new_from_slice(jwt_secret().as_bytes()).expect("Failed on cryptography");
+    Hmac::new_from_slice(jwt_secret().as_bytes()).expect("Failed on cryptography")
 }
 
 pub fn date_time_epoc(days: i64) -> i64{
@@ -111,10 +111,10 @@ pub fn date_time_epoc(days: i64) -> i64{
     };
 
     // Devolver la marca de tiempo (timestamp) de la fecha de expiración
-    return expiration.timestamp_millis();
+    expiration.timestamp_millis()
 }
 
 /// Api key for companies process
 pub fn api_key() -> String {
-    return env::var("API_KEY").expect("HASH_SECRET must be set!");
+    env::var("API_KEY").expect("HASH_SECRET must be set!")
 }

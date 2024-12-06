@@ -1,18 +1,17 @@
 use std::env;
 use actix_web::HttpResponse;
 use serde::Serialize;
-use crate::helper::models::MessageResponse;
 use lettre::transport::smtp::authentication::Credentials;
 use lettre::{Message, SmtpTransport, Transport};
 use lettre::message::{ MultiPart, SinglePart};
 use crate::handler::model::{ApiResponse};
 
 pub fn string(text:&str) -> String{
-    return String::from(text);
+    String::from(text)
 }
 
 pub fn susses_json<T: Serialize>(body: T) -> HttpResponse{
-    return HttpResponse::Ok().json(body)
+    HttpResponse::Ok().json(body)
 }
 
 pub fn un_success_json<T: Serialize>( message: &str, data: Option<T>) -> HttpResponse {
@@ -73,7 +72,7 @@ pub fn  send_email(user_email:&String) -> Result<bool, Box<dyn std::error::Error
 
 
 fn email_welcome() -> &'static str {
-    return r#"
+    r#"
     <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -149,5 +148,5 @@ fn email_welcome() -> &'static str {
 </div>
 </body>
 </html>
-"#;
+"#
 }

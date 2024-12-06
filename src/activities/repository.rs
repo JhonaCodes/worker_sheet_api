@@ -53,7 +53,7 @@ impl ActivityRepository {
             .fetch_all(&conn.db)
             .await {
             Ok(activity) => susses_json(activity),
-            Err(e) =>un_success_json(
+            Err(_) => un_success_json(
                 "No hay actividades",
                 Some("No se encontraron actividades relacionadas")
             )
@@ -75,14 +75,14 @@ WHERE p.user_id = $1;"#)
         }
     }
 
-    pub async fn list_activities(conn: Data<AppState>, filter: ActivityFilter) -> impl Responder {
+    pub async fn list_activities(conn: Data<AppState>) -> impl Responder {
         let query = sqlx::query_as::<_, Activities>(
             "SELECT * FROM activities"
         );
 
         match query.fetch_all(&conn.db).await {
             Ok(activities) => susses_json(activities),
-            Err(e) => un_success_json(
+            Err(_) => un_success_json(
                 "Error en búsqueda de actividades",
                 Some("No se encontraron actividades asociadas a este usuario")
             )
@@ -115,7 +115,7 @@ WHERE p.user_id = $1;"#)
             .execute(&conn.db)
             .await {
             Ok(_) => susses_json("Activity updated successfully"),
-            Err(e) => un_success_json(
+            Err(_) => un_success_json(
                 "Error al actualizar actividad",
                 Some("No se pudo actualizar la actividad solicitada")
             )
@@ -136,7 +136,7 @@ WHERE p.user_id = $1;"#)
             .execute(&conn.db)
             .await {
             Ok(_) => susses_json("Status updated successfully"),
-            Err(e) => un_success_json(
+            Err(_) => un_success_json(
                 "Error al cambiar estado",
                 Some("No se pudo actualizar el estado de la actividad")
             )
@@ -151,7 +151,7 @@ WHERE p.user_id = $1;"#)
             .execute(&conn.db)
             .await {
             Ok(_) => susses_json("Activity deleted successfully"),
-            Err(e) => un_success_json(
+            Err(_) => un_success_json(
                 "Error al eliminar actividad",
                 Some("No se pudo eliminar la actividad del sistema")
             )
@@ -224,7 +224,7 @@ WHERE p.user_id = $1;"#)
             .fetch_all(&conn.db)
             .await {
             Ok(photos) => susses_json(photos),
-            Err(e) => un_success_json(
+            Err(_) => un_success_json(
                 "Error al obtener fotos",
                 Some("No se pudieron recuperar las fotos del sistema")
             )
