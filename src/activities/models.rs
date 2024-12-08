@@ -6,13 +6,13 @@ use uuid::Uuid;
 #[derive(Serialize, Deserialize, FromRow, Debug)]
 pub struct Activities {
     pub id: Uuid,
+    pub user_id: Uuid,
     pub title: String,
     pub description: String,
     pub status: String,
     pub risk_level: String,
     pub location_lat: Option<f64>,
     pub location_lng: Option<f64>,
-    pub user_id: String,
     pub start_date: Option<NaiveDateTime>,
     pub end_date: Option<NaiveDateTime>,
     pub created_at: Option<NaiveDateTime>,
