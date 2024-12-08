@@ -108,7 +108,7 @@ mod tests {
             risk_level: Some("HIGH".to_string()),
             start_date: Some(Utc::now().naive_utc()),
             end_date: Some(Utc::now().naive_utc()),
-            user_id: Some(Uuid::new_v4().to_string()),
+            user_id: Some(Uuid::new_v4()),
             hash_sync: Some("test_hash".to_string()),
         };
 
@@ -124,23 +124,23 @@ mod tests {
     fn test_photo_activity() {
         let photo = PhotoActivity {
             id: 1,
-            activity_id: Uuid::new_v4().to_string(),
+            activity_id: Uuid::new_v4(),
             url: "https://example.com/photo.jpg".to_string(),
         };
 
         assert!(photo.id > 0);
-        assert!(!photo.activity_id.is_empty());
+        assert!(!photo.activity_id);
         assert!(photo.url.starts_with("http"));
     }
 
     #[test]
     fn test_new_photo() {
         let new_photo = NewPhoto {
-            activity_id: Uuid::new_v4().to_string(),
+            activity_id: Uuid::new_v4(),
             url: "https://example.com/new-photo.jpg".to_string(),
         };
 
-        assert!(!new_photo.activity_id.is_empty());
+        assert!(!new_photo.activity_id);
         assert!(new_photo.url.starts_with("http"));
     }
 
