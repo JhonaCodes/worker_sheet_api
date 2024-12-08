@@ -64,64 +64,42 @@ impl ActivityRepository {
     // }
 
 
-    pub async fn get_activity_by_user_id(conn: Data<AppState>, user_id: Uuid, limit: usize) -> impl  Responder {
+    pub async fn get_activity_by_user_id(conn: Data<AppState>, user_id: Uuid, limit:usize) -> HttpResponse {
+
         let limit_page = if limit > 10 { limit } else { 10 };
 
-        // Primero obtenemos las actividades
-        let activities = match sqlx::query_as::<_, Activities>(r#"SELECT * FROM activities WHERE user_id = $1 AND is_deleted = false"#)
+        match sqlx::query_as::<_,Activities>(r#"SELECT * FROM activities WHERE user_id = $1 AND is_deleted = false"#)
             .bind(user_id.to_string())
             .limit(limit_page)
             .fetch_all(&conn.db)
             .await {
-            Ok(acts) => acts,
-            Err(_) => return un_success_json(
+            Ok(mut activities) => {
+                // Iteramos sobre cada actividad y agregamos sus fotos
+                for activity in activities.iter_mut() {
+                    // Consultamos las fotos para esta actividad específica
+                    if let Ok(photos) = sqlx::query_as::<_, PhotoActivity>(
+                        "SELECT * FROM activity_photos WHERE activity_id = $1"
+                    )
+                        .bind(activity.id)
+                        .fetch_all(&conn.db)
+                        .await {
+                        // Extraemos solo las URL
+                        activity.photos_url = photos.iter()
+                            .map(|photo| photo.url.clone())
+                            .collect();
+                    }
+                }
+
+                susses_json(activities)
+            },
+            Err(_) => un_success_json(
                 "No hay actividades",
                 Some("No se encontraron actividades relacionadas")
             ),
         };
 
-        // Luego obtenemos todas las fotos
-        let photos = match sqlx::query_as::<_, PhotoActivity>(r#"
-        SELECT ph.*
-        FROM activity_photos ph
-        INNER JOIN activities ac ON ac.id = ph.activity_id
-        WHERE ph.user_id = $1"#)
-            .bind(user_id)
-            .fetch_all(&conn.db)
-            .await {
-            Ok(photos) => photos,
-            Err(_) => return un_success_json(
-                "No hay imágenes",
-                Some("No se encontraron imágenes relacionadas a esta actividad")
-            ),
-        };
-
-        // Convertimos cada actividad a un Value y le agregamos sus fotos
-        let activities_with_photos: Vec<serde_json::Value> = activities.into_iter()
-            .map(|activity| {
-                let mut activity_json = serde_json::to_value(&activity).unwrap_or_default();
-
-                // Encontramos todas las fotos que corresponden a esta actividad
-                let activity_photo_urls: Vec<String> = photos.iter()
-                    .filter(|photo| photo.activity_id == activity.id)
-                    .map(|photo| photo.url.clone())
-                    .collect();
-
-                // Agregamos el array de URLs al JSON de la actividad
-                if let serde_json::Value::Object(ref mut map) = activity_json {
-                    map.insert(
-                        "photos".to_string(),
-                        serde_json::to_value(activity_photo_urls).unwrap_or_default()
-                    );
-                }
-
-                activity_json
-            })
-            .collect();
-
-        // Retornamos el array de actividades
-        susses_json(activities_with_photos)
     }
+
     pub async fn get_activity_by_participant(conn: Data<AppState>, user_id: Uuid) -> impl Responder {
         match sqlx::query_as::<_, Activities>(r#"SELECT act.*
             FROM activities act

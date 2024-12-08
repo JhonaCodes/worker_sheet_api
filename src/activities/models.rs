@@ -19,6 +19,7 @@ pub struct Activities {
     pub updated_at: Option<NaiveDateTime>,
     pub hash_sync: Option<String>,
     pub is_deleted: Option<bool>,
+    pub photos_url: Option<Vec<String>>
 }
 
 #[derive(Serialize, Deserialize, FromRow)]
