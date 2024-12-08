@@ -14,7 +14,7 @@ mod tests {
             risk_level: "LOW".to_string(),
             location_lat: Some(40.7128),
             location_lng: Some(-74.0060),
-            user_id: Uuid::new_v4().to_string(),
+            user_id: Uuid::new_v4(),
             start_date: Some(Utc::now().naive_utc()),
             end_date: Some(Utc::now().naive_utc()),
             created_at: Some(Utc::now().naive_utc()),
@@ -34,7 +34,6 @@ mod tests {
         assert!(!activity.risk_level.is_empty());
         assert!(activity.location_lat.is_some());
         assert!(activity.location_lng.is_some());
-        assert!(!activity.user_id.is_empty());
         assert!(activity.start_date.is_some());
         assert!(activity.end_date.is_some());
         assert!(!activity.is_deleted.unwrap_or(true));
@@ -200,7 +199,7 @@ mod tests {
             risk_level: "LOW".to_string(),
             location_lat: None,
             location_lng: None,
-            user_id: Uuid::new_v4().to_string(),
+            user_id: Uuid::new_v4(),
             start_date: None,
             end_date: None,
             created_at: None,
