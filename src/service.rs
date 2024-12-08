@@ -59,8 +59,8 @@ pub fn config_crud_users(cfg: &mut web::ServiceConfig) {
 }
 
 pub fn config_upload_files(cfg: &mut web::ServiceConfig) {
-    cfg.service(Files::new("/uploads", "/app/uploads"))
-        .service(get_photos)
+   // cfg.service(Files::new("/uploads", "/app/uploads"))
+    cfg.service(get_photos)
         .service(delete_photo)
         .service(add_photo);
 }

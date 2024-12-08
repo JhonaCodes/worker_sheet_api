@@ -16,6 +16,8 @@ use super::models::{Activities, ActivitiesWithPhoto, ActivityFilter, NewPhoto, P
 pub struct ActivityRepository;
 
 impl ActivityRepository {
+
+
     // CRUD Básico
     pub async fn create_activity(conn: Data<AppState>, new_activity: Activities) -> impl Responder {
         match sqlx::query_as::<_, Activities>(
@@ -48,57 +50,37 @@ impl ActivityRepository {
         }
     }
 
-    // pub async fn get_activity_by_user_id(conn: Data<AppState>, user_id: Uuid) -> impl Responder {
-    //     match sqlx::query_as::<_, Activities>(
-    //         "SELECT * FROM activities WHERE user_id = $1 AND is_deleted = false"
-    //     )
-    //         .bind(user_id.to_string())
-    //         .fetch_all(&conn.db)
-    //         .await {
-    //         Ok(activity) => susses_json(activity),
-    //         Err(_) => un_success_json(
-    //             "No hay actividades",
-    //             Some("No se encontraron actividades relacionadas")
-    //         )
-    //     }
-    // }
+    pub async fn get_activity_by_user_id(conn: Data<AppState>, user_id: Uuid) -> impl Responder {
 
 
-    pub async fn get_activity_by_user_id(conn: Data<AppState>, user_id: Uuid, limit:i32) -> HttpResponse {
-
-        let limit_page = if limit > 10 { limit } else { 10 };
-
-        match sqlx::query_as::<_, ActivitiesWithPhoto>(r#"
-    SELECT
-        a.*,
-        array_agg(p.url) FILTER (WHERE p.url IS NOT NULL) as photos
-    FROM activities a
-    LEFT JOIN activity_photos p ON a.id = p.activity_id
-    WHERE a.user_id = $1 AND a.is_deleted = false
-    GROUP BY a.id
-    LIMIT $2"#)
-            .bind(user_id.to_string())
-            .bind(limit_page)
-            .fetch_all(&conn.db)
-            .await {
-            Ok(activities) => susses_json(activities),
-            Err(_) => un_success_json(
-                "No hay actividades",
-                Some("No se encontraron actividades relacionadas")
-            ),
-        }
-
+        local_activity_with_photo(conn, user_id, r#"
+        SELECT a.*,
+                (
+                    SELECT array_agg(ap.url)
+                    FROM activity_photos ap
+                    WHERE ap.activity_id = a.id
+                ) as photos
+                FROM activities a
+                WHERE a.user_id = $1
+            "#).await
     }
 
+
+
     pub async fn get_activity_by_participant(conn: Data<AppState>, user_id: Uuid) -> impl Responder {
-        match sqlx::query_as::<_, Activities>(r#"SELECT act.*
+
+        local_activity_with_photo(conn, user_id, r#"
+        SELECT act.*
+            (
+                SELECT array_agg(ap.url)
+                FROM activity_photos ap
+                WHERE ap.activity_id = a.id
+            ) as photos
             FROM activities act
             INNER JOIN participants part ON act.id = part.activity_id
-            WHERE part.user_id = $1;"#
-        ).bind(user_id).fetch_all(&conn.db).await {
-            Ok(activity_list)=> susses_json(activity_list),
-            Err(_)=> un_success_json("Error al llamar actividades", Some("No se pudo encontrar actividades relacionadas."))
-        }
+            WHERE part.user_id = $1;
+        "#).await
+
     }
 
     pub async fn list_activities(conn: Data<AppState>) -> impl Responder {
@@ -271,5 +253,51 @@ impl ActivityRepository {
 
     }
     
-    
+
+
+
+
+}
+
+async fn local_activity_with_photo(conn: Data<AppState>,  user_id: Uuid, sql_script: &str)-> impl Responder {
+
+    let activities_result = sqlx::query_as::<_, ActivitiesWithPhoto>(sql_script)
+        .bind(user_id)
+        .fetch_all(&conn.db)
+        .await;
+
+
+    match activities_result {
+        Ok(activities) => {
+            // Convertimos los resultados al formato deseado
+            let response: Vec<ActivitiesWithPhoto> = activities
+                .into_iter()
+                .map(|a| ActivitiesWithPhoto {
+                    id: a.id,
+                    title: a.title,
+                    description: a.description,
+                    status: a.status,
+                    risk_level: a.risk_level,
+                    location_lat: a.location_lat,
+                    location_lng: a.location_lng,
+                    user_id: a.user_id,
+                    start_date: a.start_date,
+                    end_date: a.end_date,
+                    created_at: a.created_at,
+                    updated_at: a.updated_at,
+                    hash_sync: a.hash_sync,
+                    is_deleted: a.is_deleted,
+                    photos: a.photos,
+                }).collect();
+
+            susses_json(response)
+        }
+        Err(err) => {
+            println!("Error: {}", err.to_string());
+            un_success_json(
+                "No hay actividades",
+                Some("No se encontraron actividades relacionadas")
+            )
+        }
+    }
 }

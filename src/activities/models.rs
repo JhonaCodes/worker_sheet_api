@@ -1,6 +1,6 @@
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
-use sqlx::FromRow;
+use sqlx::{Decode, FromRow};
 use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, FromRow, Debug)]
@@ -21,29 +21,29 @@ pub struct Activities {
     pub is_deleted: Option<bool>
 }
 
-#[derive(Serialize, Deserialize, FromRow, Debug)]
+#[derive(Serialize, Deserialize, FromRow, Decode)]
 pub struct ActivitiesWithPhoto {
     pub id: Uuid,
+    pub user_id: Uuid,
     pub title: String,
     pub description: String,
     pub status: String,
     pub risk_level: String,
     pub location_lat: Option<f64>,
     pub location_lng: Option<f64>,
-    pub user_id: String,
     pub start_date: Option<NaiveDateTime>,
     pub end_date: Option<NaiveDateTime>,
     pub created_at: Option<NaiveDateTime>,
     pub updated_at: Option<NaiveDateTime>,
     pub hash_sync: Option<String>,
     pub is_deleted: Option<bool>,
-    pub photos: Option<Vec<String>>
+    pub photos: Option<Vec<String>>,
 }
 
 #[derive(Serialize, Deserialize, FromRow)]
 pub struct PhotoActivity{
     pub id: i32,
-    pub activity_id: String,
+    pub activity_id: Uuid,
     pub url: String,
 }
 
@@ -56,13 +56,13 @@ pub struct ActivityFilter {
     pub risk_level: Option<String>,
     pub start_date: Option<NaiveDateTime>,
     pub end_date: Option<NaiveDateTime>,
-    pub user_id: Option<String>,
+    pub user_id: Option<Uuid>,
     pub hash_sync: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, FromRow)]
 pub struct NewPhoto {
-    pub activity_id: String,
+    pub activity_id: Uuid,
     pub url: String,
 }
 
