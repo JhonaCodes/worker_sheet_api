@@ -7,11 +7,11 @@ use actix_web::{HttpResponse, Responder, web::Data};
 use actix_web::web::BufMut;
 use futures::{StreamExt, TryStreamExt};
 use serde_json::json;
-use sqlx::Postgres;
+
 use uuid::Uuid;
 use crate::helper::email_service_helper::{susses_json, un_success_json};
 use crate::model::AppState;
-use super::models::{Activities, ActivityFilter, NewPhoto, PhotoActivity, UpdateActivityStatus};
+use super::models::{Activities, ActivitiesWithPhoto, ActivityFilter, NewPhoto, PhotoActivity, UpdateActivityStatus};
 
 pub struct ActivityRepository;
 
@@ -64,39 +64,29 @@ impl ActivityRepository {
     // }
 
 
-    pub async fn get_activity_by_user_id(conn: Data<AppState>, user_id: Uuid, limit:usize) -> HttpResponse {
+    pub async fn get_activity_by_user_id(conn: Data<AppState>, user_id: Uuid, limit:i32) -> HttpResponse {
 
         let limit_page = if limit > 10 { limit } else { 10 };
 
-        match sqlx::query_as::<_,Activities>(r#"SELECT * FROM activities WHERE user_id = $1 AND is_deleted = false"#)
+        match sqlx::query_as::<_, ActivitiesWithPhoto>(r#"
+    SELECT
+        a.*,
+        array_agg(p.url) FILTER (WHERE p.url IS NOT NULL) as photos
+    FROM activities a
+    LEFT JOIN activity_photos p ON a.id = p.activity_id
+    WHERE a.user_id = $1 AND a.is_deleted = false
+    GROUP BY a.id
+    LIMIT $2"#)
             .bind(user_id.to_string())
-            .limit(limit_page)
+            .bind(limit_page)
             .fetch_all(&conn.db)
             .await {
-            Ok(mut activities) => {
-                // Iteramos sobre cada actividad y agregamos sus fotos
-                for activity in activities.iter_mut() {
-                    // Consultamos las fotos para esta actividad específica
-                    if let Ok(photos) = sqlx::query_as::<_, PhotoActivity>(
-                        "SELECT * FROM activity_photos WHERE activity_id = $1"
-                    )
-                        .bind(activity.id)
-                        .fetch_all(&conn.db)
-                        .await {
-                        // Extraemos solo las URL
-                        activity.photos_url = photos.iter()
-                            .map(|photo| photo.url.clone())
-                            .collect();
-                    }
-                }
-
-                susses_json(activities)
-            },
+            Ok(activities) => susses_json(activities),
             Err(_) => un_success_json(
                 "No hay actividades",
                 Some("No se encontraron actividades relacionadas")
             ),
-        };
+        }
 
     }
 

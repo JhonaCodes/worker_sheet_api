@@ -14,7 +14,7 @@ pub async fn create_activity(
 }
 
 #[get("/activities/{user_id}/limit/{limit}")]
-pub async fn get_activity(conn: Data<AppState>, user_id: Path<Uuid>, limit: Path<usize>) -> impl Responder {
+pub async fn get_activity(conn: Data<AppState>, user_id: Path<Uuid>, limit: Path<i32>) -> impl Responder {
     ActivityRepository::get_activity_by_user_id(conn, user_id.into_inner(), limit.into_inner()).await
 }
 

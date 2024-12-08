@@ -18,8 +18,26 @@ pub struct Activities {
     pub created_at: Option<NaiveDateTime>,
     pub updated_at: Option<NaiveDateTime>,
     pub hash_sync: Option<String>,
+    pub is_deleted: Option<bool>
+}
+
+#[derive(Serialize, Deserialize, FromRow, Debug)]
+pub struct ActivitiesWithPhoto {
+    pub id: Uuid,
+    pub title: String,
+    pub description: String,
+    pub status: String,
+    pub risk_level: String,
+    pub location_lat: Option<f64>,
+    pub location_lng: Option<f64>,
+    pub user_id: String,
+    pub start_date: Option<NaiveDateTime>,
+    pub end_date: Option<NaiveDateTime>,
+    pub created_at: Option<NaiveDateTime>,
+    pub updated_at: Option<NaiveDateTime>,
+    pub hash_sync: Option<String>,
     pub is_deleted: Option<bool>,
-    pub photos_url: Option<Vec<String>>
+    pub photos: Option<Vec<String>>
 }
 
 #[derive(Serialize, Deserialize, FromRow)]
