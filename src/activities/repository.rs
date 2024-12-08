@@ -22,6 +22,7 @@ impl ActivityRepository {
 
     // CRUD Básico
     pub async fn create_activity(conn: Data<AppState>, new_activity: Activities) -> impl Responder {
+        println!("{}", json!(new_activity));
         match sqlx::query_as::<_, Activities>(
             "INSERT INTO activities
             (id, title, description, status, risk_level, location_lat, location_lng,
@@ -45,10 +46,14 @@ impl ActivityRepository {
             .fetch_one(&conn.db)
             .await {
             Ok(activity) => susses_json(activity),
-            Err(_) => un_success_json(
-                "No se pudo registrar la cuenta",
-                Some("No se pudo crear el usuario. Por favor, verifica los datos ingresados e inténtalo nuevamente")
-            )
+            Err(err) => {
+                println!("{}", err);
+
+                un_success_json(
+                    "No se pudo registrar la cuenta",
+                    Some("No se pudo crear el usuario. Por favor, verifica los datos ingresados e inténtalo nuevamente")
+                )
+            }
         }
     }
 
