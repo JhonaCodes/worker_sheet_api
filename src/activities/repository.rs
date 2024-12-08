@@ -1,20 +1,28 @@
+use std::collections::HashMap;
 use std::fs;
 use std::io::{BufWriter, Write};
 use std::path::Path;
 use actix_multipart::Multipart;
 use actix_web::{HttpResponse, Responder, web::Data};
+use actix_web::web::BufMut;
 use futures::{StreamExt, TryStreamExt};
+use jwt::Error::Format;
 use serde_json::json;
+
 use uuid::Uuid;
+use crate::activities::queries::ActivityQueries;
 use crate::helper::email_service_helper::{susses_json, un_success_json};
 use crate::model::AppState;
-use super::models::{Activities, ActivityFilter, NewPhoto, PhotoActivity, UpdateActivityStatus};
+use super::models::{Activities, ActivitiesWithPhoto, ActivityFilter, NewPhoto, PhotoActivity, UpdateActivityStatus};
 
 pub struct ActivityRepository;
 
 impl ActivityRepository {
+
+
     // CRUD Básico
     pub async fn create_activity(conn: Data<AppState>, new_activity: Activities) -> impl Responder {
+        println!("{}", json!(new_activity));
         match sqlx::query_as::<_, Activities>(
             "INSERT INTO activities
             (id, title, description, status, risk_level, location_lat, location_lng,
@@ -38,41 +46,32 @@ impl ActivityRepository {
             .fetch_one(&conn.db)
             .await {
             Ok(activity) => susses_json(activity),
-            Err(_) => un_success_json(
-                "No se pudo registrar la cuenta",
-                Some("No se pudo crear el usuario. Por favor, verifica los datos ingresados e inténtalo nuevamente")
-            )
+            Err(err) => {
+                println!("{}", err);
+
+                un_success_json(
+                    "No se pudo registrar la cuenta",
+                    Some("No se pudo crear el usuario. Por favor, verifica los datos ingresados e inténtalo nuevamente")
+                )
+            }
         }
     }
 
     pub async fn get_activity_by_user_id(conn: Data<AppState>, user_id: Uuid) -> impl Responder {
-        match sqlx::query_as::<_, Activities>(
-            "SELECT * FROM activities WHERE user_id = $1 AND is_deleted = false"
-        )
-            .bind(user_id.to_string())
-            .fetch_all(&conn.db)
-            .await {
-            Ok(activity) => susses_json(activity),
-            Err(_) => un_success_json(
-                "No hay actividades",
-                Some("No se encontraron actividades relacionadas")
-            )
-        }
+
+        ActivityQueries::local_activity_with_photo(conn, user_id, r#" WHERE a.user_id = $1"#).await
     }
 
 
-    pub async fn get_activity_list_by_user_id(conn: Data<AppState>, user_id: Uuid) -> impl Responder {
-        match sqlx::query_as::<_, Activities>(r#"SELECT a.*
-FROM activities a
-INNER JOIN participants p ON a.id = p.activity_id
-WHERE p.user_id = $1;"#)
-        .bind(user_id)
-            .fetch_all(&conn.db)
-            .await
-        {
-            Ok(activity_list)=> susses_json(activity_list),
-            Err(_)=> un_success_json("Error al llamar actividades", Some("No se pudo encontrar actividades relacionadas."))
-        }
+
+    pub async fn get_activity_by_participant(conn: Data<AppState>, user_id: Uuid) -> impl Responder {
+
+        ActivityQueries::local_activity_with_photo(conn, user_id,
+    r#"
+        INNER JOIN participants part ON a.id = part.activity_id
+        WHERE part.user_id = $1
+        "#).await
+
     }
 
     pub async fn list_activities(conn: Data<AppState>) -> impl Responder {
@@ -245,5 +244,10 @@ WHERE p.user_id = $1;"#)
 
     }
     
-    
+
+
+
+
 }
+
+

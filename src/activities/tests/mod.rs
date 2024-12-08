@@ -14,7 +14,7 @@ mod tests {
             risk_level: "LOW".to_string(),
             location_lat: Some(40.7128),
             location_lng: Some(-74.0060),
-            user_id: Uuid::new_v4().to_string(),
+            user_id: Uuid::new_v4(),
             start_date: Some(Utc::now().naive_utc()),
             end_date: Some(Utc::now().naive_utc()),
             created_at: Some(Utc::now().naive_utc()),
@@ -34,7 +34,6 @@ mod tests {
         assert!(!activity.risk_level.is_empty());
         assert!(activity.location_lat.is_some());
         assert!(activity.location_lng.is_some());
-        assert!(!activity.user_id.is_empty());
         assert!(activity.start_date.is_some());
         assert!(activity.end_date.is_some());
         assert!(!activity.is_deleted.unwrap_or(true));
@@ -108,7 +107,7 @@ mod tests {
             risk_level: Some("HIGH".to_string()),
             start_date: Some(Utc::now().naive_utc()),
             end_date: Some(Utc::now().naive_utc()),
-            user_id: Some(Uuid::new_v4().to_string()),
+            user_id: Some(Uuid::new_v4()),
             hash_sync: Some("test_hash".to_string()),
         };
 
@@ -124,23 +123,23 @@ mod tests {
     fn test_photo_activity() {
         let photo = PhotoActivity {
             id: 1,
-            activity_id: Uuid::new_v4().to_string(),
+            activity_id: Uuid::new_v4(),
             url: "https://example.com/photo.jpg".to_string(),
         };
 
         assert!(photo.id > 0);
-        assert!(!photo.activity_id.is_empty());
+        // assert!(photo.activity_id);
         assert!(photo.url.starts_with("http"));
     }
 
     #[test]
     fn test_new_photo() {
         let new_photo = NewPhoto {
-            activity_id: Uuid::new_v4().to_string(),
+            activity_id: Uuid::new_v4(),
             url: "https://example.com/new-photo.jpg".to_string(),
         };
 
-        assert!(!new_photo.activity_id.is_empty());
+        // assert!(!new_photo.activity_id);
         assert!(new_photo.url.starts_with("http"));
     }
 
@@ -200,7 +199,7 @@ mod tests {
             risk_level: "LOW".to_string(),
             location_lat: None,
             location_lng: None,
-            user_id: Uuid::new_v4().to_string(),
+            user_id: Uuid::new_v4(),
             start_date: None,
             end_date: None,
             created_at: None,

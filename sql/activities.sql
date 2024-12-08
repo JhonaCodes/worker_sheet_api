@@ -1,6 +1,6 @@
 create table if not exists activities (
     id uuid not null primary key,
-    user_id text not null,
+    user_id uuid not null,
     title text not null,
     description text not null,
     status text not null,
