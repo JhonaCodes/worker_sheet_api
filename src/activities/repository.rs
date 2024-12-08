@@ -6,9 +6,11 @@ use actix_multipart::Multipart;
 use actix_web::{HttpResponse, Responder, web::Data};
 use actix_web::web::BufMut;
 use futures::{StreamExt, TryStreamExt};
+use jwt::Error::Format;
 use serde_json::json;
 
 use uuid::Uuid;
+use crate::activities::queries::ActivityQueries;
 use crate::helper::email_service_helper::{susses_json, un_success_json};
 use crate::model::AppState;
 use super::models::{Activities, ActivitiesWithPhoto, ActivityFilter, NewPhoto, PhotoActivity, UpdateActivityStatus};
@@ -52,33 +54,17 @@ impl ActivityRepository {
 
     pub async fn get_activity_by_user_id(conn: Data<AppState>, user_id: Uuid) -> impl Responder {
 
-
-        local_activity_with_photo(conn, user_id, r#"
-        SELECT a.*,
-                (
-                    SELECT array_agg(ap.url)
-                    FROM activity_photos ap
-                    WHERE ap.activity_id = a.id
-                ) as photos
-                FROM activities a
-                WHERE a.user_id = $1
-            "#).await
+        ActivityQueries::local_activity_with_photo(conn, user_id, r#" WHERE a.user_id = $1"#).await
     }
 
 
 
     pub async fn get_activity_by_participant(conn: Data<AppState>, user_id: Uuid) -> impl Responder {
 
-        local_activity_with_photo(conn, user_id, r#"
-        SELECT act.*
-            (
-                SELECT array_agg(ap.url)
-                FROM activity_photos ap
-                WHERE ap.activity_id = a.id
-            ) as photos
-            FROM activities act
-            INNER JOIN participants part ON act.id = part.activity_id
-            WHERE part.user_id = $1;
+        ActivityQueries::local_activity_with_photo(conn, user_id,
+    r#"
+        INNER JOIN participants part ON a.id = part.activity_id
+        WHERE part.user_id = $1
         "#).await
 
     }
@@ -259,45 +245,4 @@ impl ActivityRepository {
 
 }
 
-async fn local_activity_with_photo(conn: Data<AppState>,  user_id: Uuid, sql_script: &str)-> impl Responder {
 
-    let activities_result = sqlx::query_as::<_, ActivitiesWithPhoto>(sql_script)
-        .bind(user_id)
-        .fetch_all(&conn.db)
-        .await;
-
-
-    match activities_result {
-        Ok(activities) => {
-            // Convertimos los resultados al formato deseado
-            let response: Vec<ActivitiesWithPhoto> = activities
-                .into_iter()
-                .map(|a| ActivitiesWithPhoto {
-                    id: a.id,
-                    title: a.title,
-                    description: a.description,
-                    status: a.status,
-                    risk_level: a.risk_level,
-                    location_lat: a.location_lat,
-                    location_lng: a.location_lng,
-                    user_id: a.user_id,
-                    start_date: a.start_date,
-                    end_date: a.end_date,
-                    created_at: a.created_at,
-                    updated_at: a.updated_at,
-                    hash_sync: a.hash_sync,
-                    is_deleted: a.is_deleted,
-                    photos: a.photos,
-                }).collect();
-
-            susses_json(response)
-        }
-        Err(err) => {
-            println!("Error: {}", err.to_string());
-            un_success_json(
-                "No hay actividades",
-                Some("No se encontraron actividades relacionadas")
-            )
-        }
-    }
-}
