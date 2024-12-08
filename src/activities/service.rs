@@ -13,14 +13,14 @@ pub async fn create_activity(
     ActivityRepository::create_activity(conn, new_activity.into_inner()).await
 }
 
-#[get("/activities/{user_id}")]
-pub async fn get_activity(conn: Data<AppState>, user_id: Path<Uuid>) -> impl Responder {
-    ActivityRepository::get_activity_by_user_id(conn, user_id.into_inner()).await
+#[get("/activities/{user_id}/limit/{limit}")]
+pub async fn get_activity(conn: Data<AppState>, user_id: Path<Uuid>, limit: Path<usize>) -> impl Responder {
+    ActivityRepository::get_activity_by_user_id(conn, user_id.into_inner(), limit.into_inner()).await
 }
 
 #[get("/activities/participant/{user_id}")]
 pub async fn get_activity_list_by_user_id(conn:Data<AppState>, user_id:Path<Uuid>) -> impl Responder {
-    ActivityRepository::get_activity_list_by_user_id(conn, user_id.into_inner()).await
+    ActivityRepository::get_activity_by_participant(conn, user_id.into_inner()).await
 }
 
 #[get("/activities")]
